@@ -1,11 +1,11 @@
-"use strict";
+21:26 17/7/2026"use strict";
 
 /* =========================================================
    文俠傳：完璧風雲
    完整 game.js
    ========================================================= */
 
-const SAVE_KEY = "wenxia_save_v4";
+const SAVE_KEY = "wenxia_save_v6";
 
 /* =========================================================
    初始遊戲狀態
@@ -62,6 +62,7 @@ const defaultState = {
 
   eventsSeen: [],
   eventHistory: [],
+  failure: null,
   visitedScenes: [],
   completed: false
 };
@@ -131,8 +132,9 @@ const scenes = {
         }
       },
       {
-        text: "主張把和氏璧藏起來",
+        text: "主張暫不正面答覆，先將和氏璧移往安全之處",
         next: "courtPoorChoice",
+        wrongAnswer: true,
         effects: {
           reasoning: -1
         }
@@ -214,8 +216,9 @@ const scenes = {
         }
       },
       {
-        text: "要求秦國派遣使者回覆趙國",
+        text: "尋找一名能促使秦國正式回覆趙國的人",
         next: "questionRetry",
+        wrongAnswer: true,
         effects: {
           meaning: -1
         },
@@ -226,8 +229,9 @@ const scenes = {
         }
       },
       {
-        text: "尋找一個可以向秦國報仇的人",
+        text: "尋找一名能代表趙國向秦國討回公道的人",
         next: "questionRetry",
+        wrongAnswer: true,
         effects: {
           meaning: -1
         },
@@ -284,8 +288,9 @@ const scenes = {
       "藺相如卻勸他不要逃亡。你認為藺相如最可能根據甚麼作出判斷？",
     choices: [
       {
-        text: "燕王重視友情，所以一定會保護繆賢",
+        text: "燕王曾親近繆賢，這段私人交情足以抵消兩國形勢的影響",
         next: "miaoXianWrong",
+        wrongAnswer: true,
         effects: {
           reasoning: -1
         }
@@ -308,8 +313,9 @@ const scenes = {
         }
       },
       {
-        text: "藺相如只是猜測，沒有任何根據",
+        text: "燕王的態度取決於臨場決定，現有資料不足以判斷",
         next: "miaoXianWrong",
+        wrongAnswer: true,
         effects: {
           reasoning: -1
         }
@@ -365,8 +371,9 @@ const scenes = {
       "你認為藺相如為何主張先答應秦國？",
     choices: [
       {
-        text: "因為他完全相信秦王會遵守承諾",
+        text: "先接受條件可顯示趙國誠意，秦王顧及聲名後較可能履約",
         next: "policyWrong",
+        wrongAnswer: true,
         effects: {
           reasoning: -1
         }
@@ -395,8 +402,9 @@ const scenes = {
         }
       },
       {
-        text: "因為和氏璧對趙國毫無價值",
+        text: "城池關乎國力，因此即使秦國履約機會不高，也值得直接承擔風險",
         next: "policyWrong",
+        wrongAnswer: true,
         effects: {
           reasoning: -1
         }
@@ -461,8 +469,9 @@ const scenes = {
       "眾人歡呼，秦王卻沒有提及十五座城。",
     choices: [
       {
-        text: "提醒藺相如立刻質問秦王",
+        text: "趁群臣都在場，立即依國書追問城池，使秦王公開表態",
         next: "qinDirect",
+        wrongAnswer: true,
         effects: {
           reasoning: -1
         }
@@ -517,8 +526,9 @@ const scenes = {
         }
       },
       {
-        text: "這只反映藺相如擅長鑑別玉石",
+        text: "藺相如先指出玉璧細節，是想以專業判斷爭取秦王重視",
         next: "jadeAnalysisWrong",
+        wrongAnswer: true,
         effects: {
           reasoning: -1
         }
@@ -559,8 +569,9 @@ const scenes = {
       "秦王擔心寶璧受損，只得道歉，並命官員取出地圖，假意劃出十五座城。",
     choices: [
       {
-        text: "相信秦王已經改變主意",
+        text: "秦王公開道歉並展示地圖，表示他已開始作出可驗證的讓步",
         next: "mapWrong",
+        wrongAnswer: true,
         effects: {
           reasoning: -1
         }
@@ -615,8 +626,9 @@ const scenes = {
       "秦王答應後，藺相如獲得五日時間。你認為他應如何處置和氏璧？",
     choices: [
       {
-        text: "一直把和氏璧留在房中，等待秦王齋戒完畢",
+        text: "先保留玉璧至正式朝會，再以完整禮儀要求秦王同步交城",
         next: "planWrong",
+        wrongAnswer: true,
         effects: {
           reasoning: -1
         }
@@ -634,8 +646,9 @@ const scenes = {
         }
       },
       {
-        text: "把和氏璧藏在秦國宮殿附近",
+        text: "把玉璧藏於秦國城內的秘密地點，作為談判時的制衡",
         next: "planWrong",
+        wrongAnswer: true,
         effects: {
           reasoning: -1
         }
@@ -919,6 +932,7 @@ const academyActions = {
 const academyEvents = {
   reportMeaning: {
     title: "「報秦」之爭",
+    educationNote: "語境會改變字義。翻譯時應先找句子中心，再按上下文判斷多義詞。",
     location: "書院講堂",
     speaker: "同門弟子",
     text:
@@ -930,7 +944,7 @@ const academyEvents = {
     },
     choices: [
       {
-        text: "指出「報」在此解作答覆，並分析句子中心",
+        text: "先找出「求人」的中心，再說明「報」在此是答覆",
         effects: { meaning: 1, virtue: 1, knowledge: 1 },
         masteryEffects: { syntax: 1 },
         flags: { correctedReport: true },
@@ -940,7 +954,7 @@ const academyEvents = {
         }
       },
       {
-        text: "只告訴他答案錯了，但不作解釋",
+        text: "提醒他重新判斷「報」的意思，讓他自行找出句子結構",
         effects: { meaning: 1 },
         feedback: {
           title: "解釋不足",
@@ -948,7 +962,7 @@ const academyEvents = {
         }
       },
       {
-        text: "不糾正他，以免引起爭論",
+        text: "先保留意見，待先生講解時再讓全班一起核對",
         effects: { virtue: -1 },
         feedback: {
           title: "錯義流傳",
@@ -960,6 +974,7 @@ const academyEvents = {
 
   teacherEvidence: {
     title: "先生問證",
+    educationNote: "人物分析不能只有評語；必須引用行動或言語，並解釋證據與人物特點的關係。",
     location: "書院正堂",
     speaker: "掌院先生",
     text:
@@ -970,7 +985,7 @@ const academyEvents = {
     },
     choices: [
       {
-        text: "先寫人物特點，再補一句「他十分聰明」",
+        text: "先提出人物特點，再用整段事件的結果支持判斷",
         effects: { reasoning: -1 },
         feedback: {
           title: "循環解釋",
@@ -978,7 +993,7 @@ const academyEvents = {
         }
       },
       {
-        text: "引用具體行動，解釋處境、動機及效果",
+        text: "選取具體言行，連結處境、動機與行動效果",
         effects: { reasoning: 2, knowledge: 1 },
         masteryEffects: { character: 1, evidence: 1 },
         flags: { evidenceTraining: true },
@@ -988,7 +1003,7 @@ const academyEvents = {
         }
       },
       {
-        text: "列出大量原文，但不解釋它們與人物的關係",
+        text: "列出多項相關原文，讓證據的整體方向呈現人物特點",
         effects: { knowledge: 1 },
         feedback: {
           title: "有引無析",
@@ -1000,6 +1015,7 @@ const academyEvents = {
 
   qinMerchant: {
     title: "秦商入院",
+    educationNote: "時局判斷不能只比較表面利益，還要考慮國力、信用、動機和後果。",
     location: "書院前庭",
     speaker: "秦國商人",
     text:
@@ -1010,7 +1026,7 @@ const academyEvents = {
     },
     choices: [
       {
-        text: "同意商人：十五城的價值必定高於和氏璧",
+        text: "城池能帶來長期國力，趙國可先接受交易，再處理履約風險",
         effects: { reasoning: -1 },
         feedback: {
           title: "只看表面利益",
@@ -1018,7 +1034,7 @@ const academyEvents = {
         }
       },
       {
-        text: "指出關鍵是秦國會否履約，以及趙國能否避免受辱",
+        text: "比較秦國履約可能、兩國強弱與趙國承擔的後果",
         effects: { reasoning: 2, knowledge: 1 },
         masteryEffects: { context: 1 },
         flags: { merchantInsight: true },
@@ -1028,7 +1044,7 @@ const academyEvents = {
         }
       },
       {
-        text: "認為任何與秦國有關的交易都必須拒絕",
+        text: "秦國信用可疑，趙國應先拒絕交易，以免交璧後失去談判籌碼",
         effects: { reasoning: -1, virtue: 1 },
         feedback: {
           title: "立場有餘，分析不足",
@@ -1040,6 +1056,7 @@ const academyEvents = {
 
   copyingError: {
     title: "錯抄簡牘",
+    educationNote: "校勘應以原文為依據；心疲過高時，休息和交叉核對比依賴記憶可靠。",
     location: "藏經閣",
     speaker: "旁白",
     text:
@@ -1051,7 +1068,7 @@ const academyEvents = {
     },
     choices: [
       {
-        text: "憑記憶立即修改，不再核對",
+        text: "依照剛才背誦的內容修正，以免等待原卷耽誤交付",
         effects: { meaning: -1 },
         flags: { copiedWrongText: true },
         feedback: {
@@ -1060,7 +1077,7 @@ const academyEvents = {
         }
       },
       {
-        text: "對照原卷，找出中心詞和「報」的語境意思",
+        text: "立即對照原卷，從中心詞與語境重新校勘",
         effects: { meaning: 1, knowledge: 1 },
         masteryEffects: { syntax: 1, evidence: 1 },
         flags: { correctedCopy: true },
@@ -1071,7 +1088,7 @@ const academyEvents = {
         }
       },
       {
-        text: "先休息片刻，再請同門一起核對",
+        text: "暫停抄寫，稍後與同門依原卷逐字核對",
         effects: { virtue: 1, meaning: 1 },
         flags: { correctedCopy: true },
         stress: -2,
@@ -1085,6 +1102,7 @@ const academyEvents = {
 
   teacherGuidance: {
     title: "夜授錦囊",
+    educationNote: "融會貫通是把文義、證據、人物動機與時局放進同一條推理鏈。",
     location: "掌院書室",
     speaker: "掌院先生",
     text:
@@ -1525,6 +1543,110 @@ function renderScene(sceneId, feedback = null) {
   saveGame(true);
 }
 
+
+function choiceHasNegativeEffect(choice) {
+  return Object.values(choice.effects || {}).some((amount) => amount < 0);
+}
+
+function isFormalWrongAnswer(choice) {
+  return gameState.academy.completed &&
+    gameState.currentScene !== "academyHub" &&
+    gameState.currentScene !== "academyEvent" &&
+    choice.wrongAnswer === true;
+}
+
+function getFailureLesson(choice) {
+  if (choice.feedback?.text) return choice.feedback.text;
+
+  const lessons = {
+    court: "外交危機不能只靠藏匿或逃避；必須同時分析獻璧、拒秦及秦國失信的風險。",
+    courtQuestion: "『報』在這個語境中解作答覆；全句是尋找可以出使並答覆秦國的人。",
+    miaoXianStory: "藺相如根據燕弱趙強、繆賢受趙王寵信等證據，判斷燕王不會保護逃犯。",
+    policyDebate: "先答應秦國不是因為信任秦王，而是為了使失信責任落在秦國一方。",
+    qinArrival: "和氏璧仍在秦王手中時不宜躁進；藺相如先借『璧有瑕』取回主動。",
+    jadeFlaw: "『璧有瑕』是取回玉璧的計策，重點是藺相如的機智和臨危判斷。",
+    pillarThreat: "秦王展示地圖只是拖延；判斷承諾真偽要對照他先前取得玉璧後的實際行動。",
+    fiveDayPlan: "既然秦王沒有交城誠意，就應先把和氏璧秘密送回趙國，避免再次受制。",
+    finalCourt: "殺死藺相如不能取回玉璧，反而會破壞秦趙關係；秦王必須衡量實際得失。"
+  };
+
+  return lessons[gameState.currentScene] ||
+    "作答時應以原文、人物處境和事件因果為證據，不能只憑表面印象。";
+}
+
+function renderBadEnding(choice) {
+  const failedScene = gameState.currentScene;
+  const scene = scenes[failedScene];
+  const lesson = getFailureLesson(choice);
+
+  gameState.failure = {
+    sceneId: failedScene,
+    sceneTitle: scene?.title || "任務判斷",
+    answer: choice.text,
+    lesson
+  };
+  gameState.currentScene = "badEnding";
+  gameState.completed = true;
+
+  elements.chapterTitle.textContent = "判斷失誤";
+  elements.sceneLocation.textContent = "任務中止";
+  elements.speakerName.textContent = "掌院先生";
+  elements.progressText.textContent = "失敗結局";
+  elements.dialogueText.textContent =
+    `【壞結局】${scene?.title || "正式任務"}\n\n` +
+    `你的選擇：${choice.text}\n\n` +
+    "這個判斷使使團失去主動，趙國無法繼續把重要任務交給你。你被送回書院重新研習。\n\n" +
+    `【任務結果】策略失效\n${lesson}\n\n` +
+    `目前能力：文義 ${gameState.stats.meaning}｜明辨 ${gameState.stats.reasoning}｜` +
+    `德行 ${gameState.stats.virtue}｜學識 ${gameState.stats.knowledge}`;
+
+  if (elements.academyStatus) elements.academyStatus.classList.add("hidden");
+  showFeedback({
+    title: "錯誤分析",
+    text: `這項策略忽略了關鍵條件。重新判斷時請留意：${lesson}`
+  });
+  updateStats();
+  elements.choicesContainer.replaceChildren();
+
+  const retryButton = document.createElement("button");
+  retryButton.className = "choice-button";
+  retryButton.textContent = "回到錯題重新作答";
+  retryButton.addEventListener("click", () => {
+    gameState.completed = false;
+    gameState.failure = null;
+    renderScene(failedScene);
+  });
+
+  const reportButton = document.createElement("button");
+  reportButton.className = "choice-button";
+  reportButton.textContent = "查看完整學習報告";
+  reportButton.addEventListener("click", showReport);
+
+  const restartButton = document.createElement("button");
+  restartButton.className = "choice-button";
+  restartButton.textContent = "重新挑戰本章";
+  restartButton.addEventListener("click", restartGame);
+
+  elements.choicesContainer.append(retryButton, reportButton, restartButton);
+  saveGame(true);
+}
+
+function renderSavedBadEnding() {
+  const failure = gameState.failure;
+  if (!failure) {
+    gameState.currentScene = "academyArrival";
+    renderScene("academyArrival");
+    return;
+  }
+
+  const syntheticChoice = {
+    text: failure.answer,
+    feedback: { text: failure.lesson }
+  };
+  gameState.currentScene = failure.sceneId;
+  renderBadEnding(syntheticChoice);
+}
+
 function handleChoice(choice) {
   if (choice.action === "academyEventChoice") {
     resolveAcademyEvent(choice.eventId, choice.choiceIndex);
@@ -1534,6 +1656,11 @@ function handleChoice(choice) {
   applyEffects(choice.effects);
   applyMastery(choice.masteryEffects);
   applyFlags(choice.flags);
+
+  if (isFormalWrongAnswer(choice)) {
+    renderBadEnding(choice);
+    return;
+  }
 
   if (choice.action) {
     runAction(choice.action);
@@ -1670,8 +1797,18 @@ function resolveAcademyEvent(eventId, choiceIndex) {
     choiceIndex,
     day: gameState.academy.day
   });
-  gameState.academy.lastFeedback = choice.feedback;
-  renderAcademy(choice.feedback);
+  const passed = !choiceHasNegativeEffect(choice);
+  const educationalFeedback = {
+    title: `${passed ? "判定成功" : "判定失敗"}｜${choice.feedback?.title || event.title}`,
+    text:
+      `${choice.feedback?.text || "你完成了這次判斷。"}
+
+` +
+      `【學習重點】${event.educationNote}`
+  };
+
+  gameState.academy.lastFeedback = educationalFeedback;
+  renderAcademy(educationalFeedback);
 }
 
 /* =========================================================
@@ -2127,7 +2264,9 @@ function loadGame() {
 
     switchScreen("game");
 
-    if (
+    if (gameState.currentScene === "badEnding" && gameState.failure) {
+      renderSavedBadEnding();
+    } else if (
       gameState.currentScene === "academyEvent" &&
       gameState.academy.currentEvent &&
       academyEvents[gameState.academy.currentEvent]
