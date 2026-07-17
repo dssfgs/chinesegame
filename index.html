@@ -10,174 +10,348 @@
 
   <meta
     name="description"
-    content="《文俠傳：完璧風雲》——文言文武俠學習遊戲"
+    content="《文俠傳：完璧風雲》——以《廉頗藺相如列傳》為主題的文言文武俠學習遊戲"
+  >
+
+  <meta
+    name="theme-color"
+    content="#29231d"
   >
 
   <title>文俠傳：完璧風雲</title>
 
-  <link rel="stylesheet" href="style.css">
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
+  <script
+    src="game.js"
+    defer
+  ></script>
 </head>
 
 <body>
   <main id="game-app">
 
-    <!-- 開始畫面 -->
-    <section id="title-screen" class="screen active">
-      <div class="title-panel">
-        <p class="small-title">十二典章之一</p>
+    <!-- ==========================================
+         開始畫面
+         ========================================== -->
 
-        <h1>文俠傳</h1>
-        <h2>完璧風雲</h2>
+    <section
+      id="title-screen"
+      class="screen active"
+      aria-labelledby="game-title"
+    >
+      <div class="title-panel">
+        <p class="small-title">
+          十二典章之一
+        </p>
+
+        <h1 id="game-title">
+          文俠傳
+        </h1>
+
+        <h2>
+          完璧風雲
+        </h2>
 
         <p class="opening-text">
           秦王以十五城求和氏璧。<br>
           趙國朝野震動，而你只是一名初入書院的無名弟子。
         </p>
 
-        <label for="player-name">你的名字</label>
+        <div class="name-field">
+          <label for="player-name">
+            你的名字
+          </label>
 
-        <input
-          id="player-name"
-          type="text"
-          maxlength="8"
-          placeholder="無名弟子"
-          autocomplete="off"
-        >
+          <input
+            id="player-name"
+            name="player-name"
+            type="text"
+            maxlength="8"
+            placeholder="無名弟子"
+            autocomplete="off"
+          >
+        </div>
 
         <div class="title-buttons">
-          <button id="new-game-button" class="primary-button">
+          <button
+            id="new-game-button"
+            class="primary-button"
+            type="button"
+          >
             踏入江湖
           </button>
 
-          <button id="continue-button" class="secondary-button">
+          <button
+            id="continue-button"
+            class="secondary-button"
+            type="button"
+          >
             繼續遊戲
           </button>
         </div>
 
-        <p id="save-message" class="save-message"></p>
+        <p
+          id="save-message"
+          class="save-message"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+        <div class="title-notice">
+          <p>
+            遊戲進度只會儲存在目前使用的瀏覽器。
+          </p>
+        </div>
       </div>
     </section>
 
-    <!-- 主遊戲畫面 -->
-    <section id="game-screen" class="screen">
+    <!-- ==========================================
+         主遊戲畫面
+         ========================================== -->
+
+    <section
+      id="game-screen"
+      class="screen"
+      aria-label="遊戲主畫面"
+    >
+
+      <!-- 頂部標題列 -->
 
       <header class="top-bar">
-        <div>
-          <p class="chapter-label">第一章</p>
-          <h2 id="chapter-title">和氏璧現世</h2>
+        <div class="chapter-heading">
+          <p class="chapter-label">
+            第一章
+          </p>
+
+          <h2 id="chapter-title">
+            無名入學
+          </h2>
         </div>
 
         <div class="top-buttons">
-          <button id="save-button" class="small-button">
+          <button
+            id="save-button"
+            class="small-button"
+            type="button"
+          >
             儲存
           </button>
 
-          <button id="restart-button" class="small-button danger-button">
+          <button
+            id="restart-button"
+            class="small-button danger-button"
+            type="button"
+          >
             重置
           </button>
         </div>
       </header>
 
-      <!-- 玩家資料 -->
-      <section class="status-panel">
+      <!-- ========================================
+           玩家屬性
+           ======================================== -->
+
+      <section
+        class="status-panel"
+        aria-label="玩家屬性"
+      >
         <div class="player-info">
-          <span>弟子</span>
-          <strong id="player-name-display">無名</strong>
+          <span>書院弟子</span>
+
+          <strong id="player-name-display">
+            無名
+          </strong>
         </div>
 
         <div class="stat">
           <span>文義</span>
-          <strong id="stat-meaning">0</strong>
+
+          <strong id="stat-meaning">
+            0
+          </strong>
         </div>
 
         <div class="stat">
           <span>明辨</span>
-          <strong id="stat-reasoning">0</strong>
+
+          <strong id="stat-reasoning">
+            0
+          </strong>
         </div>
 
         <div class="stat">
           <span>德行</span>
-          <strong id="stat-virtue">0</strong>
+
+          <strong id="stat-virtue">
+            0
+          </strong>
         </div>
 
         <div class="stat">
           <span>學識</span>
-          <strong id="stat-knowledge">0</strong>
+
+          <strong id="stat-knowledge">
+            0
+          </strong>
         </div>
       </section>
 
-<!-- 書院養成狀態 -->
-<section id="academy-status" class="academy-status">
-  <div class="academy-day">
-    <span>修習日期</span>
-    <strong>
-      第 <span id="academy-day-value">1</span> 日
-    </strong>
-  </div>
+      <!-- ========================================
+           書院養成狀態
+           ======================================== -->
 
-  <div class="academy-resource">
-    <span>行動點</span>
+      <section
+        id="academy-status"
+        class="academy-status"
+        aria-label="書院修習狀態"
+      >
+        <div class="academy-day">
+          <span>修習日期</span>
 
-    <div
-      id="action-point-pips"
-      class="resource-pips"
-      aria-label="剩餘行動點"
-    ></div>
-  </div>
-
-  <div class="academy-resource">
-    <span>心疲</span>
-
-    <div class="meter">
-      <div id="stress-meter" class="meter-fill"></div>
-    </div>
-
-    <strong id="stress-value">0 / 6</strong>
-  </div>
-</section>
-
-
-
-      <!-- 場景 -->
-      <section id="scene-panel" class="scene-panel">
-        <div id="scene-location" class="scene-location">
-          趙國書院
+          <strong>
+            第
+            <span id="academy-day-value">
+              1
+            </span>
+            日
+          </strong>
         </div>
 
-        <div class="scene-decoration" aria-hidden="true">
+        <div class="academy-resource">
+          <span>行動點</span>
+
+          <div
+            id="action-point-pips"
+            class="resource-pips"
+            role="img"
+            aria-label="剩餘行動點"
+          ></div>
+        </div>
+
+        <div class="academy-resource">
+          <span>心疲</span>
+
+          <div
+            class="meter"
+            role="progressbar"
+            aria-label="心疲程度"
+            aria-valuemin="0"
+            aria-valuemax="6"
+            aria-valuenow="0"
+          >
+            <div
+              id="stress-meter"
+              class="meter-fill"
+            ></div>
+          </div>
+
+          <strong id="stress-value">
+            0 / 6
+          </strong>
+        </div>
+      </section>
+
+      <!-- ========================================
+           場景畫面
+           ======================================== -->
+
+      <section
+        id="scene-panel"
+        class="scene-panel"
+        aria-label="目前場景"
+      >
+        <div
+          id="scene-location"
+          class="scene-location"
+        >
+          趙國文武書院
+        </div>
+
+        <div
+          class="scene-decoration"
+          aria-hidden="true"
+        >
           <span>山</span>
           <span>雲</span>
           <span>卷</span>
         </div>
       </section>
 
-      <!-- 對話 -->
-      <section class="dialogue-panel">
+      <!-- ========================================
+           對話及選項
+           ======================================== -->
+
+      <section
+        class="dialogue-panel"
+        aria-label="故事對話"
+      >
         <div class="speaker-row">
-          <span id="speaker-name">旁白</span>
+          <span id="speaker-name">
+            旁白
+          </span>
         </div>
 
-        <p id="dialogue-text">
-          戰國之世，七雄並立。趙惠文王得楚國和氏璧，
-          消息傳至秦國，一場風波由此而起。
+        <p
+          id="dialogue-text"
+          aria-live="polite"
+        >
+          秦趙交惡，朝局日益緊張。你來到趙國文武書院，
+          即將開始五日修習。
         </p>
 
-        <div id="feedback-box" class="feedback-box hidden">
-          <strong id="feedback-title">文義領悟</strong>
-          <p id="feedback-text"></p>
-        </div>
+        <!-- 學習回饋 -->
 
-        <div id="choices-container" class="choices-container"></div>
+        <aside
+          id="feedback-box"
+          class="feedback-box hidden"
+          aria-live="polite"
+        >
+          <strong id="feedback-title">
+            文義領悟
+          </strong>
+
+          <p id="feedback-text"></p>
+        </aside>
+
+        <!-- JavaScript 動態產生選項 -->
+
+        <div
+          id="choices-container"
+          class="choices-container"
+          aria-label="行動選項"
+        ></div>
       </section>
 
-      <footer class="game-footer">
-        <span id="progress-text">序章</span>
-        <span id="autosave-text">尚未儲存</span>
-      </footer>
+      <!-- ========================================
+           底部狀態
+           ======================================== -->
 
+      <footer class="game-footer">
+        <span id="progress-text">
+          書院序章
+        </span>
+
+        <span
+          id="autosave-text"
+          role="status"
+          aria-live="polite"
+        >
+          尚未儲存
+        </span>
+      </footer>
     </section>
   </main>
 
-  <script src="game.js"></script>
+  <!-- 沒有啟用 JavaScript 時的提示 -->
+
+  <noscript>
+    <div class="noscript-message">
+      本遊戲需要 JavaScript 才能運行，請在瀏覽器設定中啟用 JavaScript。
+    </div>
+  </noscript>
 </body>
 </html>
