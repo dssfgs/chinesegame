@@ -31,7 +31,18 @@ const defaultState = {
     maxStress: 6,
     dailyActions: [],
     completed: false,
-    lastFeedback: null
+    lastFeedback: null,
+currentEvent: null,
+eventTriggeredToday: false,
+
+actionCounts: {
+  translate: 0,
+  politics: 0,
+  character: 0,
+  quotation: 0,
+  service: 0,
+  rest: 0
+}
   },
 
   mastery: {
