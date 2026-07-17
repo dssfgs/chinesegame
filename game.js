@@ -5,7 +5,7 @@
    完整 game.js
    ========================================================= */
 
-const SAVE_KEY = "wenxia_save_v6";
+const SAVE_KEY = "wenxia_save_v7";
 
 /* =========================================================
    初始遊戲狀態
@@ -945,6 +945,7 @@ const academyEvents = {
     choices: [
       {
         text: "先找出「求人」的中心，再說明「報」在此是答覆",
+        learningOutcome: "complete",
         effects: { meaning: 1, virtue: 1, knowledge: 1 },
         masteryEffects: { syntax: 1 },
         flags: { correctedReport: true },
@@ -955,6 +956,7 @@ const academyEvents = {
       },
       {
         text: "提醒他重新判斷「報」的意思，讓他自行找出句子結構",
+        learningOutcome: "partial",
         effects: { meaning: 1 },
         feedback: {
           title: "解釋不足",
@@ -963,6 +965,7 @@ const academyEvents = {
       },
       {
         text: "先保留意見，待先生講解時再讓全班一起核對",
+        learningOutcome: "misconception",
         effects: { virtue: -1 },
         feedback: {
           title: "錯義流傳",
@@ -986,6 +989,7 @@ const academyEvents = {
     choices: [
       {
         text: "先提出人物特點，再用整段事件的結果支持判斷",
+        learningOutcome: "misconception",
         effects: { reasoning: -1 },
         feedback: {
           title: "循環解釋",
@@ -994,6 +998,7 @@ const academyEvents = {
       },
       {
         text: "選取具體言行，連結處境、動機與行動效果",
+        learningOutcome: "complete",
         effects: { reasoning: 2, knowledge: 1 },
         masteryEffects: { character: 1, evidence: 1 },
         flags: { evidenceTraining: true },
@@ -1004,6 +1009,7 @@ const academyEvents = {
       },
       {
         text: "列出多項相關原文，讓證據的整體方向呈現人物特點",
+        learningOutcome: "partial",
         effects: { knowledge: 1 },
         feedback: {
           title: "有引無析",
@@ -1027,6 +1033,7 @@ const academyEvents = {
     choices: [
       {
         text: "城池能帶來長期國力，趙國可先接受交易，再處理履約風險",
+        learningOutcome: "partial",
         effects: { reasoning: -1 },
         feedback: {
           title: "只看表面利益",
@@ -1035,6 +1042,7 @@ const academyEvents = {
       },
       {
         text: "比較秦國履約可能、兩國強弱與趙國承擔的後果",
+        learningOutcome: "complete",
         effects: { reasoning: 2, knowledge: 1 },
         masteryEffects: { context: 1 },
         flags: { merchantInsight: true },
@@ -1045,6 +1053,7 @@ const academyEvents = {
       },
       {
         text: "秦國信用可疑，趙國應先拒絕交易，以免交璧後失去談判籌碼",
+        learningOutcome: "partial",
         effects: { reasoning: -1, virtue: 1 },
         feedback: {
           title: "立場有餘，分析不足",
@@ -1069,6 +1078,7 @@ const academyEvents = {
     choices: [
       {
         text: "依照剛才背誦的內容修正，以免等待原卷耽誤交付",
+        learningOutcome: "misconception",
         effects: { meaning: -1 },
         flags: { copiedWrongText: true },
         feedback: {
@@ -1078,6 +1088,7 @@ const academyEvents = {
       },
       {
         text: "立即對照原卷，從中心詞與語境重新校勘",
+        learningOutcome: "complete",
         effects: { meaning: 1, knowledge: 1 },
         masteryEffects: { syntax: 1, evidence: 1 },
         flags: { correctedCopy: true },
@@ -1089,6 +1100,7 @@ const academyEvents = {
       },
       {
         text: "暫停抄寫，稍後與同門依原卷逐字核對",
+        learningOutcome: "complete",
         effects: { virtue: 1, meaning: 1 },
         flags: { correctedCopy: true },
         stress: -2,
@@ -1116,6 +1128,7 @@ const academyEvents = {
     choices: [
       {
         text: "接受指點：先辨形勢，再選證據，最後判斷行動",
+        learningOutcome: "complete",
         effects: { meaning: 1, reasoning: 2, knowledge: 1 },
         masteryEffects: { context: 1, syntax: 1, character: 1, evidence: 1 },
         flags: { teacherGuidance: true },
@@ -1797,14 +1810,25 @@ function resolveAcademyEvent(eventId, choiceIndex) {
     choiceIndex,
     day: gameState.academy.day
   });
-  const passed = !choiceHasNegativeEffect(choice);
+  const outcome = choice.learningOutcome ||
+    (choiceHasNegativeEffect(choice) ? "misconception" : "partial");
+  const outcomeLabels = {
+    complete: "理解完整",
+    partial: "理解未全",
+    misconception: "觀念偏差"
+  };
+  const nextStep = {
+    complete: "你已能同時使用關鍵證據和推理方法。",
+    partial: "你的想法有合理部分，但仍要補上被忽略的證據或因果。",
+    misconception: "請重新核對語境、證據及事件因果，不要只看單一線索。"
+  };
   const educationalFeedback = {
-    title: `${passed ? "判定成功" : "判定失敗"}｜${choice.feedback && choice.feedback.title || event.title}`,
+    title: `${outcomeLabels[outcome]}｜${choice.feedback && choice.feedback.title || event.title}`,
     text:
-      `${choice.feedback && choice.feedback.text || "你完成了這次判斷。"}
-
-` +
-      `【學習重點】${event.educationNote}`
+      `【你的判斷】${choice.text}\n\n` +
+      `【分析】${choice.feedback && choice.feedback.text || "你完成了這次判斷。"}\n\n` +
+      `【學習重點】${event.educationNote}\n\n` +
+      `【改進方向】${nextStep[outcome]}`
   };
 
   gameState.academy.lastFeedback = educationalFeedback;
@@ -1985,6 +2009,22 @@ function renderAcademy(feedback = null) {
   saveGame(true);
 }
 
+function formatActionEffects(action) {
+  const statNames = { meaning: "文義", reasoning: "明辨", virtue: "德行", knowledge: "學識" };
+  const masteryNames = { context: "時局", syntax: "句法", character: "人物", evidence: "引證" };
+  const changes = [];
+
+  Object.entries(action.effects || {}).forEach(([key, value]) => {
+    if (value !== 0) changes.push(`${statNames[key]} ${value > 0 ? "+" : ""}${value}`);
+  });
+  Object.entries(action.mastery || {}).forEach(([key, value]) => {
+    if (value !== 0) changes.push(`${masteryNames[key]}掌握 ${value > 0 ? "+" : ""}${value}`);
+  });
+  if (action.stress !== 0) changes.push(`心疲 ${action.stress > 0 ? "+" : ""}${action.stress}`);
+
+  return changes.length > 0 ? changes.join("｜") : "整理思緒，沒有直接能力增減";
+}
+
 function takeAcademyAction(actionId) {
   const academy = gameState.academy;
   const action = academyActions[actionId];
@@ -2004,10 +2044,17 @@ function takeAcademyAction(actionId) {
   academy.actionPoints -= 1;
   academy.dailyActions.push(actionId);
   academy.actionCounts[actionId] = (academy.actionCounts[actionId] || 0) + 1;
-  academy.lastFeedback = action.feedback;
+  const actionFeedback = {
+    title: `修習完成｜${action.feedback.title}`,
+    text:
+      `【修習內容】${action.description}\n\n` +
+      `【學習所得】${action.feedback.text}\n\n` +
+      `【能力變化】${formatActionEffects(action)}`
+  };
+  academy.lastFeedback = actionFeedback;
 
   const eventStarted = maybeTriggerAcademyEvent(actionId);
-  if (!eventStarted) renderAcademy(action.feedback);
+  if (!eventStarted) renderAcademy(actionFeedback);
 }
 
 function endAcademyDay() {
