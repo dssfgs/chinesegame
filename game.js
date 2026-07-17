@@ -5,7 +5,7 @@
    完整 game.js
    ========================================================= */
 
-const SAVE_KEY = "wenxia_save_v8";
+const SAVE_KEY = "wenxia_save_v7";
 
 /* =========================================================
    初始遊戲狀態
@@ -35,16 +35,13 @@ const defaultState = {
     currentEvent: null,
     eventTriggeredToday: false,
     actionCounts: {
-      translation: 0,
-      strategy: 0,
+      translate: 0,
+      politics: 0,
       character: 0,
       quotation: 0,
-      structure: 0,
-      review: 0
-    },
-    wrongQuestionIds: [],
-    completedGames: {},
-    miniGame: null
+      service: 0,
+      rest: 0
+    }
   },
 
   mastery: {
@@ -819,238 +816,118 @@ const scenes = {
    ========================================================= */
 
 const academyActions = {
-  translation: {
-    name: "奉璧譯館",
-    day: 1,
-    category: "translation",
-    description: "《廉頗藺相如列傳》字詞、句式及完整語譯。",
-    stress: 1
+  translate: {
+    name: "文句語譯",
+    description:
+      "完成一題《廉頗藺相如列傳》文句語譯。",
+    effects: {
+      meaning: 2,
+      knowledge: 1
+    },
+    mastery: {
+      syntax: 1
+    },
+    stress: 1,
+    feedback: {
+      title: "句法修習",
+      text:
+        "你學會先辨認句子中心，再分析修飾成分，避免只按字面次序翻譯。"
+    }
   },
-  strategy: {
-    name: "秦趙決策局",
-    day: 2,
-    category: "strategy",
-    description: "依國力、名義、風險和後備方案判斷秦趙決策。",
-    stress: 2
+
+  politics: {
+    name: "策論時局",
+    description:
+      "完成一題《廉頗藺相如列傳》時局判斷。",
+    effects: {
+      reasoning: 2,
+      knowledge: 1
+    },
+    mastery: {
+      context: 1
+    },
+    stress: 2,
+    feedback: {
+      title: "時局領悟",
+      text:
+        "你看出趙國的兩難：獻璧可能受騙，拒絕又可能給秦國出兵的藉口。"
+    }
   },
+
   character: {
-    name: "史官斷人物",
-    day: 3,
-    category: "character",
-    description: "配對人物特點、原文證據、描寫手法與分析。",
-    stress: 1
+    name: "人物品評",
+    description:
+      "完成一題《廉頗藺相如列傳》人物分析。",
+    effects: {
+      reasoning: 1,
+      knowledge: 1
+    },
+    mastery: {
+      character: 1
+    },
+    stress: 1,
+    feedback: {
+      title: "人物分析",
+      text:
+        "完整的人物分析需要交代行動、處境、動機，以及行動如何呈現人物特點。"
+    }
   },
+
   quotation: {
-    name: "原文奪璧戰",
-    day: 4,
-    category: "quotation",
-    description: "補字、上下句接龍，並把引文運用於人物分析。",
-    stress: 1
+    name: "殘卷記誦",
+    description:
+      "完成一題《廉頗藺相如列傳》原文引證。",
+    effects: {
+      meaning: 1,
+      knowledge: 2
+    },
+    mastery: {
+      evidence: 1
+    },
+    stress: 1,
+    feedback: {
+      title: "引證修習",
+      text:
+        "你開始把原文與情節連結，並利用關鍵語句證明人物特點和事件原因。"
+    }
   },
-  structure: {
-    name: "太史公編年卷",
-    day: 5,
-    category: "structure",
-    description: "整理三事次序、篇章結構及《史記》寫作手法。",
-    stress: 1
+
+  service: {
+    name: "協助同門",
+    description:
+      "協助同門完成一題篇章校勘。",
+    effects: {
+      virtue: 2,
+      meaning: 1
+    },
+    mastery: {},
+    stress: 0,
+    feedback: {
+      title: "教學相長",
+      text:
+        "當你能用自己的說話清楚解釋文句，才代表你不只是記住答案。"
+    }
   },
-  review: {
-    name: "錯題重溫",
-    day: 1,
-    category: "review",
-    description: "重做一道《廉頗藺相如列傳》錯題，完成後降低心疲。",
-    stress: -3
+
+  rest: {
+    name: "竹林休息",
+    description:
+      "在竹林完成一題輕量溫故，並降低心疲。",
+    effects: {},
+    mastery: {},
+    stress: -3,
+    feedback: {
+      title: "心神稍定",
+      text:
+        "你在竹林靜坐，整理這幾天所學。適當休息有助保持判斷力。"
+    }
   }
 };
 
-const miniGameQuestions = {
-  translation: [
-    {
-      id: "tr_tujianqi",
-      prompt: "「徒見欺」的句式和語意應如何理解？",
-      options: ["只是看見欺騙", "白白地被欺騙", "只欺騙眼前的人"],
-      correct: 1,
-      focus: "關鍵詞與被動句",
-      explanation: "「見」在此表示被動；「徒」解作白白地。"
-    },
-    {
-      id: "tr_baoqin",
-      prompt: "「求人可使報秦者」的句子中心及結構是甚麼？",
-      options: ["中心是『秦』，屬賓語前置", "中心是『求人』，『可使報秦』修飾『人』", "中心是『報』，意思是報仇"],
-      correct: 1,
-      focus: "定語後置",
-      explanation: "全句指尋找可以出使答覆秦國的人；修飾語置於中心詞『人』之後。"
-    },
-    {
-      id: "tr_heyi",
-      prompt: "「何以知之」最準確的語譯是甚麼？",
-      options: ["用甚麼方法知道這件事", "為甚麼讓他知道", "知道了甚麼事情"],
-      correct: 0,
-      focus: "賓語前置",
-      explanation: "疑問代詞『何』作介詞『以』的賓語而前置，即『以何知之』。"
-    },
-    {
-      id: "tr_junzhi",
-      prompt: "「均之二策，寧許以負秦曲」的推理關係是甚麼？",
-      options: ["比較兩策，寧可答允，讓理虧責任落在秦國", "兩策相同，所以拒絕秦國", "平均分配兩策，讓秦國屈服"],
-      correct: 0,
-      focus: "語境詞義與因果",
-      explanation: "「均」是衡量、比較；「負秦曲」指使秦國承擔理虧責任。"
-    },
-    {
-      id: "tr_xianguojia",
-      prompt: "「以先國家之急而後私讎也」應如何意譯？",
-      options: ["先處理國家危急之事，把私人仇怨放在後面", "國家先報復私人仇敵", "先讓國家危急，再解決私怨"],
-      correct: 0,
-      focus: "意動用法",
-      explanation: "「先」「後」在此表示把國家急務置先、把私人仇怨置後。"
-    }
-  ],
-  strategy: [
-    {
-      id: "st_jade",
-      prompt: "以城易璧時，哪一條推論鏈最完整？",
-      options: ["秦強趙弱→必須無條件獻璧", "秦強趙弱→拒絕則趙先理虧→先答允→秦不交城則曲在秦→遣相如出使", "和氏璧珍貴→收藏不理國書"],
-      correct: 1,
-      focus: "國力、外交名義與風險",
-      explanation: "決策同時處理強弱形勢、曲直名義和失信風險，並以使者作執行方案。"
-    },
-    {
-      id: "st_mianchi",
-      prompt: "趙王畏秦而不欲赴澠池會，廉頗和藺相如為何主張前往？",
-      options: ["只因秦王已保證安全", "不去會顯示趙國弱小怯懦，損害國家威望", "為了讓趙王學習擊缻"],
-      correct: 1,
-      focus: "外交名義與國家威望",
-      explanation: "二人沒有忽略風險，而是判斷拒絕赴會同樣會削弱趙國的外交地位。"
-    },
-    {
-      id: "st_thirty",
-      prompt: "廉頗提出趙王三十日不返便立太子，主要作用是甚麼？",
-      options: ["乘機奪取王位", "預先維持政局與國家延續，防止秦國扣留趙王要脅", "催促藺相如回國"],
-      correct: 1,
-      focus: "實際風險與後備方案",
-      explanation: "後備部署降低秦國扣留趙王所能取得的政治利益，也顯示廉頗深謀遠慮。"
-    },
-    {
-      id: "st_conflict",
-      prompt: "相如面對廉頗揚言羞辱，最完整的決策根據是甚麼？",
-      options: ["地位較高，所以不必理會任何人", "將相相鬥會削弱趙國，使強秦得利，因此避讓私人衝突", "害怕廉頗善戰"],
-      correct: 1,
-      focus: "國家利益",
-      explanation: "相如以國家安危為先；避讓不是怯懦，而是避免內耗。"
-    }
-  ],
-  character: [
-    {
-      id: "ch_pillar",
-      prompt: "「持璧倚柱，怒髮上衝冠」最適合支持哪項分析？",
-      options: ["以神態和行動描寫呈現相如臨危不懼", "以側面描寫呈現趙王膽怯", "以景物描寫呈現玉璧珍貴"],
-      correct: 0,
-      focus: "特點、證據與描寫手法",
-      explanation: "持璧倚柱是行動，怒髮衝冠是神態，配合當時強秦壓力，突出相如勇敢。"
-    },
-    {
-      id: "ch_hide",
-      prompt: "「相如引車避匿」為何不能證明他膽小？",
-      options: ["因為他不知道廉頗在場", "後文說明他以國家之急為先，避讓是為免將相相鬥", "因為車行得太快"],
-      correct: 1,
-      focus: "後文照應與人物動機",
-      explanation: "分析人物要連結後文自白；避匿呈現忍辱負重和顧全大局。"
-    },
-    {
-      id: "ch_lianpo",
-      prompt: "廉頗「肉袒負荊，因賓客至藺相如門謝罪」最能呈現甚麼？",
-      options: ["只重視個人名聲", "坦率、勇於認錯並以國家團結為重", "畏懼藺相如的官位"],
-      correct: 1,
-      focus: "性格轉變與行動證據",
-      explanation: "負荊請罪以具體行動呈現廉頗知錯能改，完成其人物轉變。"
-    },
-    {
-      id: "ch_qinking",
-      prompt: "秦王只在章臺接見相如，又把璧傳示美人及左右，主要呈現甚麼？",
-      options: ["傲慢無禮，缺乏正式交城誠意", "愛惜人才，願與趙國平等交往", "熟悉玉器鑑賞"],
-      correct: 0,
-      focus: "側面行動與人物形象",
-      explanation: "接見地點和傳璧行動共同顯示秦王輕慢趙使，只重寶璧。"
-    }
-  ],
-  quotation: [
-    {
-      id: "qu_qinstrong",
-      prompt: "補全文句：「秦彊而趙弱，＿＿＿＿。」",
-      options: ["不可不許", "寧許以負秦曲", "徒見欺"],
-      correct: 0,
-      focus: "補字奪璧",
-      explanation: "此句先指出國力形勢，作為不能直接拒秦的根據。"
-    },
-    {
-      id: "qu_fivesteps",
-      prompt: "哪一句最適合引證藺相如在澠池之會勇敢維護國家尊嚴？",
-      options: ["臣請完璧歸趙", "五步之內，相如請得以頸血濺大王矣", "相如引車避匿"],
-      correct: 1,
-      focus: "引文配題",
-      explanation: "相如以近距離威脅秦王擊缻，顯示他在強權前勇敢維護趙王尊嚴。"
-    },
-    {
-      id: "qu_twomen",
-      prompt: "接續：「彊秦之所以不敢加兵於趙者，＿＿＿＿。」",
-      options: ["徒以吾兩人在也", "以先國家之急", "卒相與驩"],
-      correct: 0,
-      focus: "上下句接龍",
-      explanation: "此句是相如避讓廉頗的核心推理：將相團結能牽制強秦。"
-    },
-    {
-      id: "qu_priority",
-      prompt: "哪一句最直接揭示「負荊請罪」部分的主旨？",
-      options: ["王不行，示趙弱且怯也", "以先國家之急而後私讎也", "秦王坐章臺見相如"],
-      correct: 1,
-      focus: "引文與主旨",
-      explanation: "此句直接說明相如把國家利益置於私人恩怨之前。"
-    }
-  ],
-  structure: [
-    {
-      id: "sr_order",
-      prompt: "哪組次序正確？",
-      options: ["璧有瑕取璧→齋戒五日→從者懷璧歸趙→澠池擊缻→引車避匿→負荊請罪", "齋戒五日→璧有瑕→負荊請罪→澠池擊缻", "澠池擊缻→完璧歸趙→廉頗揚言"],
-      correct: 0,
-      focus: "全篇情節排序",
-      explanation: "篇章依次寫完璧歸趙、澠池之會、負荊請罪三件事。"
-    },
-    {
-      id: "sr_group",
-      prompt: "「秦王為趙王擊缻」應歸入哪一卷？",
-      options: ["完璧歸趙", "澠池之會", "負荊請罪"],
-      correct: 1,
-      focus: "三事歸類",
-      explanation: "擊缻是澠池宴會上相如迫秦王回應趙王鼓瑟之辱的事件。"
-    },
-    {
-      id: "sr_foreshadow",
-      prompt: "開首先寫廉頗是著名將領，而相如只是繆賢舍人，有何結構作用？",
-      options: ["只為交代二人年齡", "形成身分對比，為相如升遷及後來將相衝突埋下伏筆", "證明舍人一定比將軍勇敢"],
-      correct: 1,
-      focus: "對比與伏筆",
-      explanation: "相如在前兩事立功升遷，身分變化引出廉頗不服，銜接負荊請罪。"
-    },
-    {
-      id: "sr_methods",
-      prompt: "篇章以秦王的退讓和左右反應突出相如的智勇，主要運用甚麼手法？",
-      options: ["側面描寫及反襯", "純粹環境描寫", "倒敘和夢境"],
-      correct: 0,
-      focus: "寫作手法",
-      explanation: "他人的反應從側面證明相如行動有效，秦王的強勢也反襯相如的智勇。"
-    }
-  ]
-};
 
-const academyDayThemes = {
-  1: "完璧歸趙：字詞語譯",
-  2: "完璧歸趙：外交決策",
-  3: "澠池之會：情節與人物",
-  4: "負荊請罪：主旨與引證",
-  5: "全篇結構與手法"
-};
+/* =========================================================
+   書院隨機事件資料
+   ========================================================= */
 
 const academyEvents = {
   reportMeaning: {
@@ -1281,7 +1158,7 @@ scenes.court.choices.unshift({
 });
 
 scenes.courtQuestion.choices.unshift({
-  text: "【教學相長】『報』是答覆；全句指尋找可以出使答覆秦國的人",
+  text: "按句子結構作答",
   next: "recommendation",
   hiddenWhenLocked: true,
   isHiddenOption: true,
@@ -1295,7 +1172,7 @@ scenes.courtQuestion.choices.unshift({
 });
 
 scenes.miaoXianStory.choices.unshift({
-  text: "【先生問證】從燕趙強弱、繆賢身分及燕王動機建立證據鏈",
+  text: "綜合現有資料判斷",
   next: "miaoXianCorrect",
   hiddenWhenLocked: true,
   isHiddenOption: true,
@@ -1995,257 +1872,335 @@ function createMasteryGrid() {
   return grid;
 }
 
-function createAcademyActionButton(actionId, action) {
+function createAcademyActionButton(
+  actionId,
+  action
+) {
   const academy = gameState.academy;
   const button = document.createElement("button");
-  const isReview = actionId === "review";
-  const lockedByDay = !isReview && academy.day < action.day;
-  const noWrongQuestions = isReview && academy.wrongQuestionIds.length === 0;
-  const cannotAct = academy.actionPoints <= 0 || lockedByDay || noWrongQuestions ||
-    (academy.stress >= academy.maxStress && !isReview);
+
+  const alreadyUsed =
+    academy.dailyActions.includes(actionId);
+
+  const isExhausted =
+    academy.stress >= academy.maxStress;
+
+  const cannotAct =
+    academy.actionPoints <= 0 ||
+    alreadyUsed ||
+    (isExhausted && actionId !== "rest");
 
   button.className = "choice-button";
   button.disabled = cannotAct;
 
   const title = document.createElement("strong");
   title.textContent = action.name;
-  const description = document.createElement("span");
-  description.className = "choice-description";
-  description.textContent = action.description;
+
+  const description =
+    document.createElement("span");
+
+  description.className =
+    "choice-description";
+
+  description.textContent =
+    action.description;
+
   const result = document.createElement("span");
   result.className = "choice-result";
 
-  if (lockedByDay) result.textContent = `第 ${action.day} 日解鎖`;
-  else if (noWrongQuestions) result.textContent = "目前沒有錯題";
-  else if (academy.actionPoints <= 0) result.textContent = "行動點不足";
-  else if (academy.stress >= academy.maxStress && !isReview) result.textContent = "心疲已滿，請重溫錯題";
-  else result.textContent = isReview ? "完成後心疲 -3" : `完成題組後結算，心疲 +${action.stress}`;
+  if (alreadyUsed) {
+    result.textContent = "今日已進行";
+  } else if (academy.actionPoints <= 0) {
+    result.textContent = "行動點不足";
+  } else if (
+    isExhausted &&
+    actionId !== "rest"
+  ) {
+    result.textContent = "心疲已滿，需要休息";
+  } else if (actionId === "rest") {
+    result.textContent =
+      "消耗 1 行動點，心疲 -3";
+  } else {
+    result.textContent =
+      `消耗 1 行動點，心疲 +${action.stress}`;
+  }
 
-  button.append(title, description, result);
-  button.addEventListener("click", () => startMiniGame(actionId));
+  button.append(
+    title,
+    description,
+    result
+  );
+
+  button.addEventListener("click", () => {
+    takeAcademyAction(actionId);
+  });
+
   return button;
 }
 
 function renderAcademy(feedback = null) {
   const academy = gameState.academy;
-  gameState.currentScene = "academyHub";
-  academy.miniGame = null;
 
-  elements.chapterTitle.textContent = "《廉頗藺相如列傳》五日備試";
-  elements.sceneLocation.textContent = `修習第${academy.day}日`;
-  elements.speakerName.textContent = "掌院先生";
+  gameState.currentScene = "academyHub";
+
+  elements.chapterTitle.textContent =
+    "書院修習";
+
+  elements.sceneLocation.textContent =
+    `修習第${academy.day}日`;
+
+  elements.speakerName.textContent =
+    "掌院先生";
+
   elements.dialogueText.textContent =
-    `今日主題：${academyDayThemes[academy.day]}。所有修習、錯題重溫及評核均只取材自《廉頗藺相如列傳》。`;
-  elements.progressText.textContent = `第 ${academy.day} / ${academy.maxDays} 日`;
+    academy.actionPoints > 0
+      ? "五日後朝廷將召見書院弟子。你要如何運用今日的時間？"
+      : "今日行動點已用盡。你可以結束今日修習，讓所學沉澱。";
+
+  elements.progressText.textContent =
+    `第 ${academy.day} / ${academy.maxDays} 日`;
 
   showFeedback(feedback);
   updateStats();
-  if (elements.academyStatus) elements.academyStatus.classList.remove("hidden");
+
+  if (elements.academyStatus) {
+    elements.academyStatus.classList.remove(
+      "hidden"
+    );
+  }
+
   elements.choicesContainer.replaceChildren();
-  elements.choicesContainer.appendChild(createMasteryGrid());
 
-  Object.entries(academyActions).forEach(([actionId, action]) => {
-    elements.choicesContainer.appendChild(createAcademyActionButton(actionId, action));
-  });
+  elements.choicesContainer.appendChild(
+    createMasteryGrid()
+  );
 
-  const endDayButton = document.createElement("button");
+  for (
+    const [actionId, action]
+    of Object.entries(academyActions)
+  ) {
+    elements.choicesContainer.appendChild(
+      createAcademyActionButton(
+        actionId,
+        action
+      )
+    );
+  }
+
+  const endDayButton =
+    document.createElement("button");
+
   endDayButton.className = "choice-button";
-  endDayButton.textContent = academy.day >= academy.maxDays ? "完成五日備試，接受朝廷徵召" : "結束今日修習";
-  endDayButton.addEventListener("click", endAcademyDay);
-  elements.choicesContainer.appendChild(endDayButton);
+
+  endDayButton.textContent =
+    academy.day >= academy.maxDays
+      ? "結束養成，接受朝廷徵召"
+      : "結束今日修習";
+
+  endDayButton.addEventListener(
+    "click",
+    endAcademyDay
+  );
+
+  elements.choicesContainer.appendChild(
+    endDayButton
+  );
+
   saveGame(true);
 }
 
-function allMiniGameQuestions() {
-  return Object.values(miniGameQuestions).flat();
-}
+function formatActionEffects(action) {
+  const statNames = { meaning: "文義", reasoning: "明辨", virtue: "德行", knowledge: "學識" };
+  const masteryNames = { context: "時局", syntax: "句法", character: "人物", evidence: "引證" };
+  const changes = [];
 
-function getQuestionById(id) {
-  return allMiniGameQuestions().find((question) => question.id === id);
-}
-
-function shuffled(items) {
-  return [...items].sort(() => Math.random() - 0.5);
-}
-
-function startMiniGame(actionId) {
-  const academy = gameState.academy;
-  const action = academyActions[actionId];
-  if (!action || academy.actionPoints <= 0) return;
-  if (academy.day < action.day && actionId !== "review") return;
-
-  let questions;
-  if (actionId === "review") {
-    const available = academy.wrongQuestionIds.map(getQuestionById).filter(Boolean);
-    if (available.length === 0) return;
-    questions = [available[Math.floor(Math.random() * available.length)]];
-  } else {
-    questions = shuffled(miniGameQuestions[action.category]).slice(0, 3);
-  }
-
-  academy.miniGame = {
-    actionId,
-    category: action.category,
-    questionIds: questions.map((question) => question.id),
-    index: 0,
-    correct: 0,
-    hints: 0,
-    answers: [],
-    startedAt: Date.now(),
-    currentHintUsed: false,
-    currentAnswered: false
-  };
-  renderMiniGameQuestion();
-}
-
-function renderMiniGameQuestion() {
-  const academy = gameState.academy;
-  const session = academy.miniGame;
-  if (!session) return renderAcademy();
-  const question = getQuestionById(session.questionIds[session.index]);
-  if (!question) return finishMiniGame();
-
-  gameState.currentScene = "academyMiniGame";
-  elements.chapterTitle.textContent = academyActions[session.actionId].name;
-  elements.sceneLocation.textContent = `第 ${session.index + 1} / ${session.questionIds.length} 題`;
-  elements.speakerName.textContent = question.focus;
-  elements.dialogueText.textContent = question.prompt;
-  elements.progressText.textContent = `${academyDayThemes[academy.day]}｜得分 ${session.correct}`;
-  hideFeedback();
-  updateStats();
-  elements.choicesContainer.replaceChildren();
-
-  question.options.forEach((option, optionIndex) => {
-    const button = document.createElement("button");
-    button.className = "choice-button";
-    button.textContent = option;
-    button.addEventListener("click", () => answerMiniGameQuestion(optionIndex));
-    elements.choicesContainer.appendChild(button);
+  Object.entries(action.effects || {}).forEach(([key, value]) => {
+    if (value !== 0) changes.push(`${statNames[key]} ${value > 0 ? "+" : ""}${value}`);
   });
-
-  const hintButton = document.createElement("button");
-  hintButton.className = "choice-button";
-  hintButton.textContent = "使用提示（會影響結算）";
-  hintButton.addEventListener("click", () => {
-    if (session.currentHintUsed) return;
-    session.currentHintUsed = true;
-    session.hints += 1;
-    showFeedback({
-      title: "史官提示",
-      text: `先鎖定考核重點「${question.focus}」，再排除只解釋表面字義或只引用單一線索的選項。`
-    });
-    hintButton.disabled = true;
+  Object.entries(action.mastery || {}).forEach(([key, value]) => {
+    if (value !== 0) changes.push(`${masteryNames[key]}掌握 ${value > 0 ? "+" : ""}${value}`);
   });
-  elements.choicesContainer.appendChild(hintButton);
-  saveGame(true);
+  if (action.stress !== 0) changes.push(`心疲 ${action.stress > 0 ? "+" : ""}${action.stress}`);
+
+  return changes.length > 0 ? changes.join("｜") : "整理思緒，沒有直接能力增減";
 }
 
-function answerMiniGameQuestion(optionIndex) {
-  const academy = gameState.academy;
-  const session = academy.miniGame;
-  if (!session || session.currentAnswered) return;
-  const question = getQuestionById(session.questionIds[session.index]);
-  const isCorrect = optionIndex === question.correct;
-  session.currentAnswered = true;
-  if (isCorrect) session.correct += 1;
-  else if (!academy.wrongQuestionIds.includes(question.id)) academy.wrongQuestionIds.push(question.id);
-  if (isCorrect) {
-    academy.wrongQuestionIds = academy.wrongQuestionIds.filter((id) => id !== question.id);
-  }
-  session.answers.push({ questionId: question.id, optionIndex, isCorrect, hintUsed: session.currentHintUsed });
 
-  showFeedback({
-    title: isCorrect ? "證據吻合" : "推論需要修正",
-    text: `【你的答案】${question.options[optionIndex]}\n\n【參考答案】${question.options[question.correct]}\n\n【解析】${question.explanation}`
-  });
-  elements.choicesContainer.querySelectorAll("button").forEach((button) => { button.disabled = true; });
+/* =========================================================
+《廉頗藺相如列傳》小遊戲流程
+========================================================= */
 
-  const nextButton = document.createElement("button");
-  nextButton.className = "choice-button";
-  nextButton.disabled = false;
-  nextButton.textContent = session.index + 1 >= session.questionIds.length ? "查看題組結算" : "下一題";
-  nextButton.addEventListener("click", () => {
-    session.index += 1;
-    session.currentAnswered = false;
-    session.currentHintUsed = false;
-    if (session.index >= session.questionIds.length) finishMiniGame();
-    else renderMiniGameQuestion();
-  });
-  elements.choicesContainer.appendChild(nextButton);
-  saveGame(true);
+function shuffledQuestionChoices(question) {
+const order = question.choices.map((_, index) => index);
+for (let index = order.length - 1; index > 0; index -= 1) {
+const target = Math.floor(Math.random() * (index + 1));
+[order[index], order[target]] = [order[target], order[index]];
+}
+return order;
 }
 
-function finishMiniGame() {
-  const academy = gameState.academy;
-  const session = academy.miniGame;
-  if (!session) return renderAcademy();
-  const action = academyActions[session.actionId];
-  const total = session.questionIds.length;
-  const accuracy = session.correct / total;
-  const elapsedSeconds = Math.max(1, Math.round((Date.now() - session.startedAt) / 1000));
-  const noHintBonus = session.hints === 0 ? 1 : 0;
-  const performance = accuracy === 1 ? "融會貫通" : accuracy >= 0.67 ? "基本掌握" : "尚待重溫";
+function beginStudyGame(actionId) {
+const academy = gameState.academy;
+const action = academyActions[actionId];
+const game = studyGames[actionId];
+if (!action || !game || academy.actionPoints <= 0) return;
+if (academy.dailyActions.includes(actionId)) return;
+if (academy.stress >= academy.maxStress && actionId !== "rest") return;
 
-  const effects = {};
-  const masteryEffects = {};
-  if (session.actionId === "review") {
-    effects.knowledge = session.correct > 0 ? 1 : 0;
-  } else if (session.category === "translation") {
-    effects.meaning = session.correct + noHintBonus;
-    effects.knowledge = accuracy >= 0.67 ? 1 : 0;
-    masteryEffects.syntax = accuracy >= 0.67 ? 1 : 0;
-    if (accuracy === 1) gameState.flags.correctedReport = true;
-  } else if (session.category === "strategy") {
-    effects.reasoning = session.correct + noHintBonus;
-    masteryEffects.context = accuracy >= 0.67 ? 1 : 0;
-    if (accuracy === 1) gameState.flags.merchantInsight = true;
-  } else if (session.category === "character") {
-    effects.reasoning = session.correct;
-    effects.knowledge = accuracy >= 0.67 ? 1 : 0;
-    masteryEffects.character = accuracy >= 0.67 ? 1 : 0;
-    masteryEffects.evidence = accuracy === 1 ? 1 : 0;
-    if (accuracy === 1) gameState.flags.evidenceTraining = true;
-  } else if (session.category === "quotation") {
-    effects.meaning = session.correct;
-    effects.knowledge = session.correct + noHintBonus;
-    masteryEffects.evidence = accuracy >= 0.67 ? 1 : 0;
-  } else if (session.category === "structure") {
-    effects.knowledge = session.correct + noHintBonus;
-    effects.reasoning = accuracy >= 0.67 ? 1 : 0;
-    masteryEffects.context = accuracy === 1 ? 1 : 0;
-    masteryEffects.character = accuracy >= 0.67 ? 1 : 0;
-  }
+const questionIndex = academy.actionCounts[actionId] % game.questions.length;
+const question = game.questions[questionIndex];
+academy.studyGame = {
+actionId,
+questionIndex,
+order: shuffledQuestionChoices(question),
+selected: null,
+phase: "question",
+correct: null
+};
+gameState.currentScene = "studyGame";
+renderStudyGame();
+}
 
-  applyEffects(effects);
-  applyMastery(masteryEffects);
-  academy.actionPoints -= 1;
-  academy.stress = Math.min(academy.maxStress, Math.max(0, academy.stress + action.stress));
-  academy.actionCounts[session.actionId] = (academy.actionCounts[session.actionId] || 0) + 1;
-  academy.completedGames[session.category] = Math.max(academy.completedGames[session.category] || 0, Math.round(accuracy * 100));
+function createQuizChoice(text, displayIndex, selected) {
+const button = document.createElement("button");
+button.className = "choice-button quiz-choice";
+button.textContent = text;
+button.setAttribute("aria-pressed", selected ? "true" : "false");
+if (selected) button.classList.add("selected");
+button.addEventListener("click", () => {
+gameState.academy.studyGame.selected = displayIndex;
+renderStudyGame();
+});
+return button;
+}
 
-  const coreCategories = ["translation", "strategy", "character", "quotation", "structure"];
-  if (coreCategories.every((category) => academy.completedGames[category] >= 67)) {
-    gameState.flags.teacherGuidance = true;
-  }
+function renderStudyGame() {
+const state = gameState.academy.studyGame;
+if (!state || !studyGames[state.actionId]) {
+renderAcademy();
+return;
+}
+const game = studyGames[state.actionId];
+const question = game.questions[state.questionIndex];
+gameState.currentScene = "studyGame";
+elements.chapterTitle.textContent = game.name;
+elements.sceneLocation.textContent = `修習第${gameState.academy.day}日`;
+elements.speakerName.textContent = "掌院試題";
+elements.dialogueText.textContent = question.prompt;
+elements.progressText.textContent = "作答中";
+hideFeedback();
+updateStats();
+elements.choicesContainer.replaceChildren();
 
-  const changes = Object.entries(effects).filter(([, value]) => value).map(([key, value]) => `${{meaning:"文義",reasoning:"明辨",virtue:"德行",knowledge:"學識"}[key]} +${value}`).join("｜") || "沒有能力加分";
-  const feedback = {
-    title: `${performance}｜${action.name}`,
-    text: `答對 ${session.correct} / ${total} 題｜提示 ${session.hints} 次｜用時 ${elapsedSeconds} 秒\n\n【能力結算】${changes}\n\n【錯題庫】目前有 ${academy.wrongQuestionIds.length} 題，翌日可用「錯題重溫」再答。`
-  };
-  academy.lastFeedback = feedback;
-  academy.miniGame = null;
-  renderAcademy(feedback);
+if (state.phase === "result") {
+renderStudyGameResult(state, game, question);
+saveGame(true);
+return;
+}
+
+state.order.forEach((originalIndex, displayIndex) => {
+elements.choicesContainer.appendChild(
+createQuizChoice(question.choices[originalIndex], displayIndex, state.selected === displayIndex)
+);
+});
+
+const submit = document.createElement("button");
+submit.className = "choice-button";
+submit.textContent = "提交答案";
+submit.disabled = state.selected === null;
+submit.addEventListener("click", submitStudyGame);
+elements.choicesContainer.appendChild(submit);
+saveGame(true);
+}
+
+function submitStudyGame() {
+const academy = gameState.academy;
+const state = academy.studyGame;
+if (!state || state.phase !== "question" || state.selected === null) return;
+const game = studyGames[state.actionId];
+const question = game.questions[state.questionIndex];
+const originalIndex = state.order[state.selected];
+state.correct = originalIndex === question.correct;
+state.phase = "result";
+
+const action = academyActions[state.actionId];
+if (state.correct) {
+applyEffects(action.effects);
+applyMastery(action.mastery);
+}
+academy.stress = Math.min(
+academy.maxStress,
+Math.max(0, academy.stress + action.stress)
+);
+academy.actionPoints -= 1;
+academy.dailyActions.push(state.actionId);
+academy.actionCounts[state.actionId] = (academy.actionCounts[state.actionId] || 0) + 1;
+renderStudyGame();
+}
+
+function renderStudyGameResult(state, game, question) {
+const selectedOriginal = state.order[state.selected];
+const selectedText = question.choices[selectedOriginal];
+const correctText = question.choices[question.correct];
+elements.progressText.textContent = state.correct ? "作答正確" : "完成訂正";
+showFeedback({
+title: state.correct ? "答對" : "答案不正確",
+text:
+`【你的答案】${selectedText}\n\n` +
+`【正確答案】${correctText}\n\n` +
+`【解析】${question.explanation}`
+});
+
+const continueButton = document.createElement("button");
+continueButton.className = "choice-button";
+continueButton.textContent = "完成修習";
+continueButton.addEventListener("click", finishStudyGame);
+elements.choicesContainer.appendChild(continueButton);
+}
+
+function finishStudyGame() {
+const academy = gameState.academy;
+const state = academy.studyGame;
+if (!state) {
+renderAcademy();
+return;
+}
+const actionId = state.actionId;
+const wasCorrect = state.correct;
+const game = studyGames[actionId];
+const actionFeedback = {
+title: `${game.name}｜${wasCorrect ? "完成" : "已訂正"}`,
+text: wasCorrect
+? "你已根據篇章內容完成本次修習。能力獎勵已結算。"
+: "你已查看答案與解析。本次不獲能力獎勵，但修習紀錄與心疲仍會保留。"
+};
+academy.lastFeedback = actionFeedback;
+academy.studyGame = null;
+const eventStarted = maybeTriggerAcademyEvent(actionId);
+if (!eventStarted) renderAcademy(actionFeedback);
+}
+
+function takeAcademyAction(actionId) {
+beginStudyGame(actionId);
 }
 
 function endAcademyDay() {
   const academy = gameState.academy;
-  if (academy.actionPoints > 0 && !window.confirm(`今日尚有 ${academy.actionPoints} 個行動點。確定提早結束嗎？`)) return;
+
+  if (academy.actionPoints > 0) {
+    const confirmed = window.confirm(
+      `今日尚有 ${academy.actionPoints} 個行動點。確定提早結束嗎？`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+  }
 
   if (academy.day >= academy.maxDays) {
     academy.completed = true;
     academy.lastFeedback = null;
-    academy.miniGame = null;
+
     renderScene("academySummons");
     return;
   }
@@ -2253,18 +2208,32 @@ function endAcademyDay() {
   academy.day += 1;
   academy.dailyActions = [];
   academy.lastFeedback = null;
-  academy.miniGame = null;
   academy.currentEvent = null;
   academy.eventTriggeredToday = false;
-  academy.stress = Math.max(0, academy.stress - 1);
-  academy.actionPoints = academy.stress >= 5 ? 2 : academy.maxActionPoints;
+
+  academy.stress = Math.max(
+    0,
+    academy.stress - 1
+  );
+
+  academy.actionPoints =
+    academy.stress >= 5
+      ? 2
+      : academy.maxActionPoints;
+
   renderAcademy({
-    title: `第${academy.day}日｜${academyDayThemes[academy.day]}`,
-    text: academy.wrongQuestionIds.length > 0
-      ? `新一日開始。錯題庫有 ${academy.wrongQuestionIds.length} 題，可先重溫再挑戰新題組。`
-      : "新一日開始。今日所有題目仍只取材自《廉頗藺相如列傳》。"
+    title: `第${academy.day}日`,
+    text:
+      academy.actionPoints <
+      academy.maxActionPoints
+        ? "你昨夜未能完全恢復，今日只有兩個行動點。"
+        : "新的一日開始了。昨日所學仍需透過運用才能真正掌握。"
   });
 }
+
+/* =========================================================
+   學習報告
+   ========================================================= */
 
 function showReport() {
   const total =
@@ -2450,12 +2419,6 @@ function loadGame() {
           ...defaultState.academy.actionCounts,
           ...(parsedData.academy && parsedData.academy.actionCounts || {})
         },
-        wrongQuestionIds: Array.isArray(parsedData.academy && parsedData.academy.wrongQuestionIds)
-          ? parsedData.academy.wrongQuestionIds : [],
-        completedGames: {
-          ...defaultState.academy.completedGames,
-          ...(parsedData.academy && parsedData.academy.completedGames || {})
-        },
         dailyActions: Array.isArray(parsedData.academy && parsedData.academy.dailyActions)
           ? parsedData.academy.dailyActions
           : []
@@ -2475,7 +2438,9 @@ function loadGame() {
 
     switchScreen("game");
 
-    if (gameState.currentScene === "badEnding" && gameState.failure) {
+    if (gameState.currentScene === "studyGame" && gameState.academy.studyGame) {
+renderStudyGame();
+} else if (gameState.currentScene === "badEnding" && gameState.failure) {
       renderSavedBadEnding();
     } else if (
       gameState.currentScene === "academyEvent" &&
@@ -2483,8 +2448,6 @@ function loadGame() {
       academyEvents[gameState.academy.currentEvent]
     ) {
       renderAcademyEvent(gameState.academy.currentEvent);
-    } else if (gameState.currentScene === "academyMiniGame" && gameState.academy.miniGame) {
-      renderMiniGameQuestion();
     } else if (gameState.currentScene === "academyHub") {
       renderAcademy(gameState.academy.lastFeedback);
     } else if (scenes[gameState.currentScene]) {
