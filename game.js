@@ -1,170 +1,87 @@
 "use strict";
 
-const SAVE_KEY = "wenxia_save_v1";
+/* =========================================================
+   文俠傳：完璧風雲
+   完整 game.js
+   ========================================================= */
+
+const SAVE_KEY = "wenxia_save_v2";
+
+/* =========================================================
+   初始遊戲狀態
+   ========================================================= */
 
 const defaultState = {
   playerName: "無名",
-  currentScene: "prologue",
+  currentScene: "academyArrival",
+
   stats: {
     meaning: 0,
     reasoning: 0,
     virtue: 0,
     knowledge: 0
   },
+
+  academy: {
+    day: 1,
+    maxDays: 5,
+    actionPoints: 3,
+    maxActionPoints: 3,
+    stress: 0,
+    maxStress: 6,
+    dailyActions: [],
+    completed: false,
+    lastFeedback: null
+  },
+
+  mastery: {
+    context: 0,
+    syntax: 0,
+    character: 0,
+    evidence: 0
+  },
+
   visitedScenes: [],
   completed: false
 };
 
-let gameState = structuredClone(defaultState);
+let gameState = cloneDefaultState();
+
+/* =========================================================
+   主線場景資料
+   ========================================================= */
 
 const scenes = {
-  prologue: {
+  academyArrival: {
     chapter: "第一章",
-    title: "和氏璧現世",
-    progress: "序章",
-    location: "趙國書院",
-    speaker: "旁白",
+    title: "無名入學",
+    progress: "書院序章",
+    location: "趙國文武書院",
+    speaker: "掌院先生",
     text:
-      "戰國之世，七雄並立。趙惠文王得楚國和氏璧。消息傳至秦國，秦王派使者前來，聲稱願以十五座城交換寶璧。\n\n你名為「{playerName}」，只是書院中一名尚未受人重視的弟子。",
+      "秦趙交惡，朝局日益緊張。趙國廣召能讀史、明理、善辯的年輕弟子，以備不時之需。\n\n" +
+      "你名為「{playerName}」，出身平凡，既無顯赫家世，也未有驚人才學。掌院先生給你五日時間修習。五日後，你將接受朝廷徵召。",
     choices: [
       {
-        text: "先到藏書閣查閱秦、趙形勢",
-        next: "library",
-        effects: {
-          meaning: 1,
-          knowledge: 1
-        }
-      },
-      {
-        text: "前往大殿，直接旁聽群臣議事",
-        next: "court",
-        effects: {
-          reasoning: 1
-        }
-      },
-      {
-        text: "此事與我無關，先完成自己的雜務",
-        next: "chores",
-        effects: {
-          virtue: -1
-        }
+        text: "開始第一日修習",
+        action: "openAcademy"
       }
     ]
   },
 
-  library: {
+  academySummons: {
     chapter: "第一章",
-    title: "秦強趙弱",
-    progress: "修習一",
-    location: "書院藏經閣",
-    speaker: "掌院先生",
+    title: "朝廷徵召",
+    progress: "養成完成",
+    location: "書院正堂",
+    speaker: "趙國使者",
     text:
-      "秦國勢強，趙國勢弱。若把璧交給秦國，秦國可能取得寶璧而不交出城池；若拒絕，秦國又可能藉故攻趙。\n\n先生問：「這種進退兩難的形勢，應如何概括？」",
+      "第五日黃昏，一名趙國使者帶着王命來到書院。\n\n" +
+      "秦王得知趙王擁有和氏璧，派人送來國書，聲稱願以十五城交換寶璧。趙王召集群臣，命書院選派弟子前往大殿聽候差遣。",
     choices: [
       {
-        text: "予璧，秦城恐不可得；不予，則恐秦兵之來",
-        next: "libraryCorrect",
-        effects: {
-          meaning: 2,
-          reasoning: 1,
-          knowledge: 1
-        },
-        feedback: {
-          title: "文義領悟",
-          text:
-            "你掌握了事件的核心矛盾：交出和氏璧，可能得不到城；不交出，又擔心秦國出兵。"
-        }
-      },
-      {
-        text: "趙國既有和氏璧，秦國必然不敢進攻",
-        next: "libraryWrong",
-        effects: {
-          meaning: -1
-        },
-        feedback: {
-          title: "需要再想",
-          text:
-            "和氏璧是珍寶，卻不能消除秦、趙之間的實力差距。判斷人物行動時，需要先理解政治形勢。"
-        }
-      }
-    ]
-  },
-
-  libraryCorrect: {
-    chapter: "第一章",
-    title: "秦強趙弱",
-    progress: "修習完成",
-    location: "書院藏經閣",
-    speaker: "掌院先生",
-    text:
-      "先生微微頷首：「能看見兩種選擇各自的風險，才算真正理解局勢。現在到趙王大殿去吧。」",
-    choices: [
-      {
-        text: "前往趙王大殿",
+        text: "整理所學，前往趙王大殿",
         next: "court"
-      }
-    ]
-  },
-
-  libraryWrong: {
-    chapter: "第一章",
-    title: "秦強趙弱",
-    progress: "重新思考",
-    location: "書院藏經閣",
-    speaker: "掌院先生",
-    text:
-      "先生搖頭：「珍寶不能代替國力。你必須分清事件的表面與根本。」",
-    choices: [
-      {
-        text: "重新分析秦、趙形勢",
-        next: "library"
-      },
-      {
-        text: "帶着疑問前往大殿",
-        next: "court"
-      }
-    ]
-  },
-
-  chores: {
-    chapter: "第一章",
-    title: "無名之輩",
-    progress: "支線事件",
-    location: "書院後院",
-    speaker: "老僕",
-    text:
-      "老僕看着你掃地，低聲道：「國家有難，身份低微便可以置身事外嗎？」\n\n遠處鐘聲響起，趙王正在召集群臣。",
-    choices: [
-      {
-        text: "放下掃帚，趕往大殿",
-        next: "court",
-        effects: {
-          virtue: 1
-        }
-      },
-      {
-        text: "完成職責後再去",
-        next: "lateCourt",
-        effects: {
-          virtue: 1,
-          reasoning: -1
-        }
-      }
-    ]
-  },
-
-  lateCourt: {
-    chapter: "第一章",
-    title: "廷議已開",
-    progress: "大殿議事",
-    location: "趙王大殿",
-    speaker: "旁白",
-    text:
-      "你趕到大殿時，群臣已爭論多時。有人主張獻璧，有人主張拒秦，卻沒有人能保證趙國安然無事。",
-    choices: [
-      {
-        text: "靜聽眾人意見",
-        next: "courtQuestion"
       }
     ]
   },
@@ -176,26 +93,75 @@ const scenes = {
     location: "趙王大殿",
     speaker: "趙王",
     text:
-      "「秦王欲以十五城換取和氏璧。諸位以為，此璧當予，還是不予？」\n\n大殿中議論紛紛。你發現，問題不只是『給』或『不給』，而是誰能出使秦國，既保全國體，又能隨機應變。",
+      "「秦王欲以十五城換取和氏璧。諸位以為，此璧當予，還是不予？」\n\n" +
+      "大殿中議論紛紛。你發現，問題不只是『給』或『不給』，而是如何避免趙國蒙受欺辱。",
     choices: [
       {
-        text: "關鍵是找到能夠回覆秦國的使者",
-        next: "courtQuestion",
+        text: "分析獻璧與拒秦的兩種風險",
+        next: "courtAnalysis",
+        requirement: {
+          type: "mastery",
+          key: "context",
+          value: 1,
+          label: "需要時局達到初識"
+        },
         effects: {
           reasoning: 1
         }
       },
       {
-        text: "只要把和氏璧藏起來便可",
-        next: "courtQuestion",
+        text: "主張把和氏璧藏起來",
+        next: "courtPoorChoice",
         effects: {
           reasoning: -1
+        }
+      },
+      {
+        text: "先靜聽群臣意見",
+        next: "courtQuestion"
+      }
+    ]
+  },
+
+  courtAnalysis: {
+    chapter: "第一章",
+    title: "兩難之局",
+    progress: "時局分析",
+    location: "趙王大殿",
+    speaker: "你",
+    text:
+      "你向趙王分析：「若獻出和氏璧，秦國可能只取寶物而不交城池；若拒絕，又可能招致秦兵。故此不能只論予或不予，還要選出能夠隨機應變的使者。」\n\n" +
+      "殿上群臣稍稍安靜下來。",
+    choices: [
+      {
+        text: "建議尋找能夠答覆秦國的使者",
+        next: "courtQuestion",
+        effects: {
+          reasoning: 1,
+          knowledge: 1
         },
         feedback: {
-          title: "局勢判斷",
+          title: "時局掌握",
           text:
-            "藏起寶璧不能回應秦國要求，也可能令秦國找到出兵藉口。外交問題需要外交策略。"
+            "你分辨了表面選擇和真正問題：趙國需要一名能夠維護國家利益、應對強秦的使者。"
         }
+      }
+    ]
+  },
+
+  courtPoorChoice: {
+    chapter: "第一章",
+    title: "藏璧之議",
+    progress: "時局判斷",
+    location: "趙王大殿",
+    speaker: "廉頗",
+    text:
+      "廉頗搖頭道：「藏起和氏璧，既不能回覆秦國，也無法消除秦國出兵的威脅。」\n\n" +
+      "你意識到，外交危機不能只靠逃避來解決。",
+    choices: [
+      {
+        text: "重新思考真正的問題",
+        next: "courtQuestion"
       }
     ]
   },
@@ -207,7 +173,8 @@ const scenes = {
     location: "趙王大殿",
     speaker: "宦者令繆賢",
     text:
-      "繆賢說，他的門客藺相如可以出使秦國。\n\n原文以「求人可使報秦者」表達趙王尋找使者。這句話最合理的現代語譯是甚麼？",
+      "繆賢表示，他的門客藺相如可以出使秦國。\n\n" +
+      "趙王原本正「求人可使報秦者」。這句話最合理的現代語譯是甚麼？",
     choices: [
       {
         text: "尋找一個可以出使並答覆秦國的人",
@@ -216,10 +183,13 @@ const scenes = {
           meaning: 2,
           knowledge: 1
         },
+        masteryEffects: {
+          syntax: 1
+        },
         feedback: {
-          title: "答對了",
+          title: "語譯正確",
           text:
-            "「求人可使報秦者」可理解為：尋找一個可以出使、回覆秦國的人。「者」指符合前面條件的人。"
+            "句子的中心是「求人」；「可使報秦」修飾所尋找的人。「報」在這裏解作答覆。"
         }
       },
       {
@@ -229,21 +199,21 @@ const scenes = {
           meaning: -1
         },
         feedback: {
-          title: "語譯錯誤",
+          title: "句子方向錯誤",
           text:
-            "句中的尋找者是趙王；「可使報秦」修飾「人」，不是要求秦國派遣使者。"
+            "尋找使者的是趙國；句中不是要求秦國派人。翻譯時要先找出動作的發出者。"
         }
       },
       {
-        text: "找人把秦國使者趕回去",
+        text: "尋找一個可以向秦國報仇的人",
         next: "questionRetry",
         effects: {
           meaning: -1
         },
         feedback: {
-          title: "字詞辨析",
+          title: "字義錯誤",
           text:
-            "這裏的「報」是回覆、答覆，不是報復，也不是趕走對方。"
+            "「報」在這個語境中解作答覆或回覆，不是報仇。"
         }
       }
     ]
@@ -254,9 +224,9 @@ const scenes = {
     title: "倒裝之句",
     progress: "文義重溫",
     location: "趙王大殿",
-    speaker: "書院先生",
+    speaker: "掌院先生",
     text:
-      "先生在你耳邊低聲提醒：「先找句子的中心詞，再看其他部分修飾誰。這句的中心是『求人』。」",
+      "先生低聲提醒你：「先找中心詞。趙王要求的是『人』，其他部分用來說明這個人要具備甚麼條件。」",
     choices: [
       {
         text: "再次回答",
@@ -270,25 +240,75 @@ const scenes = {
     title: "布衣藺相如",
     progress: "人物登場",
     location: "趙王大殿",
-    speaker: "藺相如",
+    speaker: "旁白",
     text:
-      "一名衣着樸素的門客步入殿中。他沒有顯赫出身，面對趙王和群臣卻毫無畏色。\n\n藺相如說，若秦國交出城池，和氏璧便留在秦國；若秦國不交城池，他必使和氏璧完整回到趙國。",
+      "衣着樸素的藺相如步入大殿。他沒有顯赫官位，面對趙王和群臣卻毫無慌亂。\n\n" +
+      "趙王問繆賢，為何認為藺相如足以擔當使者。",
     choices: [
       {
-        text: "請求成為藺相如的隨行文書",
-        next: "endingGood",
-        requirement: {
-          stat: "reasoning",
-          value: 1,
-          label: "需要明辨 1"
-        },
+        text: "細聽繆賢講述逃亡燕國的往事",
+        next: "miaoXianStory"
+      }
+    ]
+  },
+
+  miaoXianStory: {
+    chapter: "第一章",
+    title: "止亡走燕",
+    progress: "人物分析",
+    location: "趙王大殿",
+    speaker: "宦者令繆賢",
+    text:
+      "繆賢曾經犯罪，打算逃往燕國。他以為燕王曾經主動握手結交，必會收留自己。\n\n" +
+      "藺相如卻勸他不要逃亡。你認為藺相如最可能根據甚麼作出判斷？",
+    choices: [
+      {
+        text: "燕王重視友情，所以一定會保護繆賢",
+        next: "miaoXianWrong",
         effects: {
-          virtue: 1
+          reasoning: -1
         }
       },
       {
-        text: "先記錄藺相如的計策，再作決定",
-        next: "endingNormal",
+        text: "燕弱趙強，燕王結交繆賢是因他受趙王寵信",
+        next: "miaoXianCorrect",
+        effects: {
+          reasoning: 2,
+          knowledge: 1
+        },
+        masteryEffects: {
+          context: 1,
+          character: 1
+        },
+        feedback: {
+          title: "推論正確",
+          text:
+            "藺相如沒有只看燕王表面的友善，而是從燕、趙強弱和繆賢的身分分析燕王的真正動機。"
+        }
+      },
+      {
+        text: "藺相如只是猜測，沒有任何根據",
+        next: "miaoXianWrong",
+        effects: {
+          reasoning: -1
+        }
+      }
+    ]
+  },
+
+  miaoXianWrong: {
+    chapter: "第一章",
+    title: "表裏之別",
+    progress: "人物分析",
+    location: "趙王大殿",
+    speaker: "宦者令繆賢",
+    text:
+      "繆賢解釋，燕王當初願意結交自己，是因為趙國強、燕國弱，而自己又受到趙王寵信。\n\n" +
+      "如果他成為趙國逃犯，燕王反而可能把他綁回趙國。",
+    choices: [
+      {
+        text: "明白藺相如如何分析形勢",
+        next: "miaoXianCorrect",
         effects: {
           knowledge: 1
         }
@@ -296,18 +316,413 @@ const scenes = {
     ]
   },
 
-  endingGood: {
+  miaoXianCorrect: {
     chapter: "第一章",
-    title: "使秦之路",
-    progress: "序章完成",
-    location: "趙國城門",
+    title: "勇而有謀",
+    progress: "人物分析",
+    location: "趙王大殿",
+    speaker: "宦者令繆賢",
+    text:
+      "繆賢接受藺相如的建議，主動向趙王請罪，最後得到赦免。因此，他認為藺相如既有勇氣，也有智謀，適合出使秦國。\n\n" +
+      "趙王轉身向藺相如詢問和氏璧之事。",
+    choices: [
+      {
+        text: "聽取藺相如的對策",
+        next: "policyDebate"
+      }
+    ]
+  },
+
+  policyDebate: {
+    chapter: "第一章",
+    title: "曲在何方",
+    progress: "策論考驗",
+    location: "趙王大殿",
     speaker: "藺相如",
     text:
-      "藺相如看了你一眼：「出使秦國，靠的不是匹夫之勇。要明白形勢，也要守住趙國的尊嚴。」\n\n你隨使團踏出城門。前方，是強秦的咸陽宮，也是第一次真正的考驗。",
+      "藺相如指出：若秦國用城池交換和氏璧，而趙國拒絕，是趙國理虧；若趙國獻璧而秦國不交城池，則是秦國理虧。\n\n" +
+      "你認為藺相如為何主張先答應秦國？",
+    choices: [
+      {
+        text: "因為他完全相信秦王會遵守承諾",
+        next: "policyWrong",
+        effects: {
+          reasoning: -1
+        }
+      },
+      {
+        text: "藉此讓道理站在趙國一方，使秦國承擔失信責任",
+        next: "missionOffer",
+        requirement: {
+          type: "stat",
+          key: "reasoning",
+          value: 2,
+          label: "需要明辨 2"
+        },
+        effects: {
+          reasoning: 2,
+          knowledge: 1
+        },
+        masteryEffects: {
+          context: 1,
+          character: 1
+        },
+        feedback: {
+          title: "明辨之策",
+          text:
+            "藺相如不是盲目相信秦王，而是從道理、責任和外交形勢安排下一步。"
+        }
+      },
+      {
+        text: "因為和氏璧對趙國毫無價值",
+        next: "policyWrong",
+        effects: {
+          reasoning: -1
+        }
+      }
+    ]
+  },
+
+  policyWrong: {
+    chapter: "第一章",
+    title: "利與理",
+    progress: "策論重溫",
+    location: "趙王大殿",
+    speaker: "掌院先生",
+    text:
+      "先生提醒你：「藺相如並非相信秦王，也不是輕視和氏璧。他考慮的是如何使趙國不負理虧之名。」",
+    choices: [
+      {
+        text: "重新分析藺相如的計策",
+        next: "policyDebate"
+      }
+    ]
+  },
+
+  missionOffer: {
+    chapter: "第一章",
+    title: "奉璧使秦",
+    progress: "出使決定",
+    location: "趙王大殿",
+    speaker: "藺相如",
+    text:
+      "藺相如主動請纓：若秦國先把城池交給趙國，和氏璧便留在秦國；若城池沒有交付，他會把和氏璧完整帶回趙國。\n\n" +
+      "他需要一名隨行文書。你是否願意同行？",
+    choices: [
+      {
+        text: "請求成為藺相如的隨行文書",
+        next: "qinArrival",
+        requirement: {
+          type: "stat",
+          key: "reasoning",
+          value: 3,
+          label: "需要明辨 3"
+        },
+        effects: {
+          virtue: 1
+        }
+      },
+      {
+        text: "以學識不足為由留在趙國",
+        next: "endingStayed"
+      }
+    ]
+  },
+
+  qinArrival: {
+    chapter: "第一章",
+    title: "西入強秦",
+    progress: "抵達秦國",
+    location: "秦國章臺",
+    speaker: "旁白",
+    text:
+      "你隨藺相如西入秦國。秦王沒有在正殿接見趙國使者，而是在章臺接過和氏璧，隨即把它傳給宮中侍從觀看。\n\n" +
+      "眾人歡呼，秦王卻沒有提及十五座城。",
+    choices: [
+      {
+        text: "提醒藺相如立刻質問秦王",
+        next: "qinDirect",
+        effects: {
+          reasoning: -1
+        }
+      },
+      {
+        text: "觀察藺相如如何取回和氏璧",
+        next: "jadeFlaw"
+      }
+    ]
+  },
+
+  qinDirect: {
+    chapter: "第一章",
+    title: "不可躁進",
+    progress: "章臺交鋒",
+    location: "秦國章臺",
+    speaker: "藺相如",
+    text:
+      "藺相如低聲道：「璧仍在秦王手中。此刻公開質問，只會令我方失去轉圜餘地。」\n\n" +
+      "他向秦王表示，玉璧上有一處瑕疵，可以指出來。",
+    choices: [
+      {
+        text: "明白後退一步是為了取回主動",
+        next: "jadeFlaw",
+        effects: {
+          reasoning: 1
+        }
+      }
+    ]
+  },
+
+  jadeFlaw: {
+    chapter: "第一章",
+    title: "璧有瑕",
+    progress: "章臺交鋒",
+    location: "秦國章臺",
+    speaker: "藺相如",
+    text:
+      "「璧有瑕，請指示王。」\n\n" +
+      "秦王把和氏璧交回藺相如。藺相如持璧後退，靠着殿柱，指出秦王接見使者時禮節傲慢，又只顧傳看寶璧，沒有交城的誠意。",
+    choices: [
+      {
+        text: "這反映藺相如先以機智取璧，再以勇氣抗秦",
+        next: "pillarThreat",
+        effects: {
+          reasoning: 2,
+          knowledge: 1
+        },
+        masteryEffects: {
+          character: 1,
+          evidence: 1
+        }
+      },
+      {
+        text: "這只反映藺相如擅長鑑別玉石",
+        next: "jadeAnalysisWrong",
+        effects: {
+          reasoning: -1
+        }
+      }
+    ]
+  },
+
+  jadeAnalysisWrong: {
+    chapter: "第一章",
+    title: "言外之意",
+    progress: "人物分析",
+    location: "秦國章臺",
+    speaker: "旁白",
+    text:
+      "所謂玉璧有瑕只是藺相如取回和氏璧的辦法。重點不在鑑玉，而在他能迅速判斷秦王失信，並設法重奪主動。",
+    choices: [
+      {
+        text: "重新理解藺相如的行動",
+        next: "pillarThreat",
+        effects: {
+          knowledge: 1
+        },
+        masteryEffects: {
+          character: 1
+        }
+      }
+    ]
+  },
+
+  pillarThreat: {
+    chapter: "第一章",
+    title: "怒髮衝冠",
+    progress: "章臺交鋒",
+    location: "秦國章臺",
+    speaker: "藺相如",
+    text:
+      "藺相如斜視殿柱，表示如果秦王強行奪璧，他便與和氏璧一同撞碎在柱上。\n\n" +
+      "秦王擔心寶璧受損，只得道歉，並命官員取出地圖，假意劃出十五座城。",
+    choices: [
+      {
+        text: "相信秦王已經改變主意",
+        next: "mapWrong",
+        effects: {
+          reasoning: -1
+        }
+      },
+      {
+        text: "判斷秦王只是拖延和欺詐",
+        next: "fiveDayPlan",
+        requirement: {
+          type: "mastery",
+          key: "context",
+          value: 2,
+          label: "需要時局達到理解"
+        },
+        effects: {
+          reasoning: 2
+        }
+      },
+      {
+        text: "建議藺相如繼續觀察",
+        next: "fiveDayPlan"
+      }
+    ]
+  },
+
+  mapWrong: {
+    chapter: "第一章",
+    title: "詐佯予城",
+    progress: "形勢判斷",
+    location: "秦國章臺",
+    speaker: "藺相如",
+    text:
+      "藺相如指出，秦王只是借地圖假裝交出城池。若真正有意履約，就不會在取得寶璧後完全不談交城之事。",
+    choices: [
+      {
+        text: "協助藺相如思考下一步",
+        next: "fiveDayPlan",
+        effects: {
+          knowledge: 1
+        }
+      }
+    ]
+  },
+
+  fiveDayPlan: {
+    chapter: "第一章",
+    title: "齋戒五日",
+    progress: "暗度和璧",
+    location: "廣成傳舍",
+    speaker: "藺相如",
+    text:
+      "藺相如以趙王送璧前曾齋戒五日為理由，要求秦王也齋戒五日，並在朝廷設下隆重禮儀，才會再次獻璧。\n\n" +
+      "秦王答應後，藺相如獲得五日時間。你認為他應如何處置和氏璧？",
+    choices: [
+      {
+        text: "一直把和氏璧留在房中，等待秦王齋戒完畢",
+        next: "planWrong",
+        effects: {
+          reasoning: -1
+        }
+      },
+      {
+        text: "讓隨從穿平民衣服，帶璧從小路返回趙國",
+        next: "returnJade",
+        effects: {
+          reasoning: 2,
+          knowledge: 2
+        },
+        masteryEffects: {
+          evidence: 1,
+          character: 1
+        }
+      },
+      {
+        text: "把和氏璧藏在秦國宮殿附近",
+        next: "planWrong",
+        effects: {
+          reasoning: -1
+        }
+      }
+    ]
+  },
+
+  planWrong: {
+    chapter: "第一章",
+    title: "徑道歸趙",
+    progress: "策略重溫",
+    location: "廣成傳舍",
+    speaker: "藺相如",
+    text:
+      "藺相如判斷秦王即使齋戒，也不會真正交付城池。他決定先讓和氏璧離開秦國，避免五日後再次受制。",
+    choices: [
+      {
+        text: "安排隨從秘密送璧回趙",
+        next: "returnJade",
+        effects: {
+          knowledge: 1
+        }
+      }
+    ]
+  },
+
+  returnJade: {
+    chapter: "第一章",
+    title: "徑道歸璧",
+    progress: "暗度和璧",
+    location: "廣成傳舍",
+    speaker: "旁白",
+    text:
+      "夜色之中，藺相如命隨從換上平民衣服，把和氏璧藏在身上，從偏僻小路逃離秦國。\n\n" +
+      "和氏璧已經踏上歸趙之路，但藺相如本人仍留在秦國。",
+    choices: [
+      {
+        text: "詢問他為何不一同逃走",
+        next: "finalCourt"
+      }
+    ]
+  },
+
+  finalCourt: {
+    chapter: "第一章",
+    title: "廷見秦王",
+    progress: "最後交鋒",
+    location: "秦國正殿",
+    speaker: "藺相如",
+    text:
+      "五日後，秦王設下隆重禮儀。藺相如坦言和氏璧已經回到趙國，並指出秦國歷來缺乏堅守盟約的君主。\n\n" +
+      "他表示自己欺瞞秦王，甘願承受刑罰，請秦王和群臣仔細考慮。",
+    choices: [
+      {
+        text: "秦王會殺死藺相如，以挽回威嚴",
+        next: "finalReasoningWrong"
+      },
+      {
+        text: "殺死藺相如既取不回寶璧，也會破壞秦趙關係",
+        next: "endingGood",
+        requirement: {
+          type: "stat",
+          key: "reasoning",
+          value: 5,
+          label: "需要明辨 5"
+        },
+        effects: {
+          reasoning: 1,
+          virtue: 1
+        }
+      },
+      {
+        text: "觀察秦王如何衡量得失",
+        next: "endingNormal"
+      }
+    ]
+  },
+
+  finalReasoningWrong: {
+    chapter: "第一章",
+    title: "秦王之計",
+    progress: "最後交鋒",
+    location: "秦國正殿",
+    speaker: "旁白",
+    text:
+      "秦王雖然憤怒，卻明白殺死藺相如也不能取回和氏璧，反而會斷絕秦趙之間的關係。\n\n" +
+      "他最終按外交禮節接見藺相如，讓他返回趙國。",
+    choices: [
+      {
+        text: "返回趙國",
+        next: "endingNormal"
+      }
+    ]
+  },
+
+  endingGood: {
+    chapter: "第一章",
+    title: "完璧歸趙",
+    progress: "第一章完成",
+    location: "趙國王城",
+    speaker: "趙王",
+    text:
+      "和氏璧完整回到趙國，藺相如也沒有使趙國受辱。趙王認為他是一名賢能大夫，把他擢升為上大夫。\n\n" +
+      "你親歷了整場外交交鋒，開始明白：藺相如的勇氣並非魯莽，而是建立在細密判斷之上。",
     completed: true,
     choices: [
       {
-        text: "查看本章學習成果",
+        text: "查看本章學習報告",
         action: "showReport"
       },
       {
@@ -319,31 +734,173 @@ const scenes = {
 
   endingNormal: {
     chapter: "第一章",
-    title: "留守趙國",
-    progress: "序章完成",
-    location: "趙國書院",
-    speaker: "掌院先生",
+    title: "不辱使命",
+    progress: "第一章完成",
+    location: "趙國王城",
+    speaker: "旁白",
     text:
-      "你沒有隨使團前往秦國，卻把朝堂上的每一句話記錄下來。先生告訴你：「記錄只是第一步，還要理解人物為何這樣說、這樣做。」",
+      "秦王最終沒有殺死藺相如，而是按禮節讓他返回趙國。秦國沒有交出城池，趙國也沒有失去和氏璧。\n\n" +
+      "你雖然未能預先判斷秦王的決定，仍見證了藺相如如何以智勇維護趙國。",
     completed: true,
     choices: [
       {
-        text: "查看本章學習成果",
+        text: "查看本章學習報告",
         action: "showReport"
       },
       {
-        text: "重新挑戰序章",
+        text: "重新挑戰",
+        action: "restart"
+      }
+    ]
+  },
+
+  endingStayed: {
+    chapter: "第一章",
+    title: "留守書院",
+    progress: "支線結局",
+    location: "趙國書院",
+    speaker: "掌院先生",
+    text:
+      "你沒有隨藺相如前往秦國，而是留在書院整理朝堂紀錄。\n\n" +
+      "數日後，和氏璧完整回到趙國。先生告訴你：「你已理解部分文義，但要真正掌握人物，仍須分析他在危急關頭的選擇。」",
+    completed: true,
+    choices: [
+      {
+        text: "查看本章學習報告",
+        action: "showReport"
+      },
+      {
+        text: "重新修習",
         action: "restart"
       }
     ]
   }
 };
 
+/* =========================================================
+   書院修習資料
+   ========================================================= */
+
+const academyActions = {
+  translate: {
+    name: "文句語譯",
+    description:
+      "研習倒裝、省略及重要文言字詞，練習找出句子中心。",
+    effects: {
+      meaning: 2,
+      knowledge: 1
+    },
+    mastery: {
+      syntax: 1
+    },
+    stress: 1,
+    feedback: {
+      title: "句法修習",
+      text:
+        "你學會先辨認句子中心，再分析修飾成分，避免只按字面次序翻譯。"
+    }
+  },
+
+  politics: {
+    name: "策論時局",
+    description:
+      "分析秦、趙國力和獻璧利弊，訓練因果判斷。",
+    effects: {
+      reasoning: 2,
+      knowledge: 1
+    },
+    mastery: {
+      context: 1
+    },
+    stress: 2,
+    feedback: {
+      title: "時局領悟",
+      text:
+        "你看出趙國的兩難：獻璧可能受騙，拒絕又可能給秦國出兵的藉口。"
+    }
+  },
+
+  character: {
+    name: "人物品評",
+    description:
+      "從言語、行動和處境分析人物性格，避免空泛評價。",
+    effects: {
+      reasoning: 1,
+      knowledge: 1
+    },
+    mastery: {
+      character: 1
+    },
+    stress: 1,
+    feedback: {
+      title: "人物分析",
+      text:
+        "完整的人物分析需要交代行動、處境、動機，以及行動如何呈現人物特點。"
+    }
+  },
+
+  quotation: {
+    name: "殘卷記誦",
+    description:
+      "整理散亂簡牘，把關鍵語句與故事情節連結起來。",
+    effects: {
+      meaning: 1,
+      knowledge: 2
+    },
+    mastery: {
+      evidence: 1
+    },
+    stress: 1,
+    feedback: {
+      title: "引證修習",
+      text:
+        "你開始把原文與情節連結，並利用關鍵語句證明人物特點和事件原因。"
+    }
+  },
+
+  service: {
+    name: "協助同門",
+    description:
+      "向基礎較弱的弟子解釋文句，在教學中鞏固理解。",
+    effects: {
+      virtue: 2,
+      meaning: 1
+    },
+    mastery: {},
+    stress: 0,
+    feedback: {
+      title: "教學相長",
+      text:
+        "當你能用自己的說話清楚解釋文句，才代表你不只是記住答案。"
+    }
+  },
+
+  rest: {
+    name: "竹林休息",
+    description:
+      "暫停修習，整理思緒並降低心疲。",
+    effects: {},
+    mastery: {},
+    stress: -3,
+    feedback: {
+      title: "心神稍定",
+      text:
+        "你在竹林靜坐，整理這幾天所學。適當休息有助保持判斷力。"
+    }
+  }
+};
+
+/* =========================================================
+   HTML 元素
+   ========================================================= */
+
 const elements = {
   titleScreen: document.querySelector("#title-screen"),
   gameScreen: document.querySelector("#game-screen"),
+
   playerNameInput: document.querySelector("#player-name"),
   playerNameDisplay: document.querySelector("#player-name-display"),
+
   newGameButton: document.querySelector("#new-game-button"),
   continueButton: document.querySelector("#continue-button"),
   saveButton: document.querySelector("#save-button"),
@@ -365,15 +922,32 @@ const elements = {
 
   feedbackBox: document.querySelector("#feedback-box"),
   feedbackTitle: document.querySelector("#feedback-title"),
-  feedbackText: document.querySelector("#feedback-text")
+  feedbackText: document.querySelector("#feedback-text"),
+
+  academyStatus: document.querySelector("#academy-status"),
+  academyDayValue: document.querySelector("#academy-day-value"),
+  actionPointPips: document.querySelector("#action-point-pips"),
+  stressMeter: document.querySelector("#stress-meter"),
+  stressValue: document.querySelector("#stress-value")
 };
 
+/* =========================================================
+   基本工具
+   ========================================================= */
+
 function cloneDefaultState() {
-  return structuredClone(defaultState);
+  if (typeof structuredClone === "function") {
+    return structuredClone(defaultState);
+  }
+
+  return JSON.parse(JSON.stringify(defaultState));
 }
 
-function formatText(text) {
-  return text.replaceAll("{playerName}", gameState.playerName);
+function formatText(text = "") {
+  return text.replaceAll(
+    "{playerName}",
+    gameState.playerName
+  );
 }
 
 function switchScreen(screenName) {
@@ -388,13 +962,137 @@ function switchScreen(screenName) {
   );
 }
 
+/* =========================================================
+   屬性及掌握度
+   ========================================================= */
+
 function updateStats() {
-  elements.playerNameDisplay.textContent = gameState.playerName;
-  elements.meaning.textContent = gameState.stats.meaning;
-  elements.reasoning.textContent = gameState.stats.reasoning;
-  elements.virtue.textContent = gameState.stats.virtue;
-  elements.knowledge.textContent = gameState.stats.knowledge;
+  elements.playerNameDisplay.textContent =
+    gameState.playerName;
+
+  elements.meaning.textContent =
+    gameState.stats.meaning;
+
+  elements.reasoning.textContent =
+    gameState.stats.reasoning;
+
+  elements.virtue.textContent =
+    gameState.stats.virtue;
+
+  elements.knowledge.textContent =
+    gameState.stats.knowledge;
+
+  updateAcademyStatus();
 }
+
+function applyEffects(effects = {}) {
+  for (const [stat, amount] of Object.entries(effects)) {
+    if (!(stat in gameState.stats)) {
+      continue;
+    }
+
+    gameState.stats[stat] += amount;
+    gameState.stats[stat] = Math.max(
+      0,
+      gameState.stats[stat]
+    );
+  }
+}
+
+function applyMastery(masteryEffects = {}) {
+  for (
+    const [category, amount]
+    of Object.entries(masteryEffects)
+  ) {
+    if (!(category in gameState.mastery)) {
+      continue;
+    }
+
+    gameState.mastery[category] += amount;
+
+    gameState.mastery[category] = Math.min(
+      3,
+      Math.max(0, gameState.mastery[category])
+    );
+  }
+}
+
+function getMasteryLabel(value) {
+  if (value >= 3) {
+    return "掌握";
+  }
+
+  if (value >= 2) {
+    return "理解";
+  }
+
+  if (value >= 1) {
+    return "初識";
+  }
+
+  return "未習";
+}
+
+/* =========================================================
+   書院狀態列
+   ========================================================= */
+
+function updateAcademyStatus() {
+  if (!elements.academyStatus) {
+    return;
+  }
+
+  const academy = gameState.academy;
+
+  elements.academyStatus.classList.toggle(
+    "hidden",
+    academy.completed
+  );
+
+  elements.academyDayValue.textContent =
+    academy.day;
+
+  elements.actionPointPips.replaceChildren();
+
+  for (
+    let index = 0;
+    index < academy.maxActionPoints;
+    index += 1
+  ) {
+    const pip = document.createElement("span");
+    pip.className = "resource-pip";
+
+    if (index < academy.actionPoints) {
+      pip.classList.add("active");
+    }
+
+    elements.actionPointPips.appendChild(pip);
+  }
+
+  const stressPercentage =
+    academy.stress / academy.maxStress * 100;
+
+  elements.stressMeter.style.width =
+    `${stressPercentage}%`;
+
+  if (academy.stress >= 5) {
+    elements.stressMeter.style.backgroundColor =
+      "#9c3028";
+  } else if (academy.stress >= 3) {
+    elements.stressMeter.style.backgroundColor =
+      "#b88932";
+  } else {
+    elements.stressMeter.style.backgroundColor =
+      "#688359";
+  }
+
+  elements.stressValue.textContent =
+    `${academy.stress} / ${academy.maxStress}`;
+}
+
+/* =========================================================
+   回饋訊息
+   ========================================================= */
 
 function hideFeedback() {
   elements.feedbackBox.classList.add("hidden");
@@ -408,42 +1106,56 @@ function showFeedback(feedback) {
     return;
   }
 
-  elements.feedbackTitle.textContent = feedback.title;
-  elements.feedbackText.textContent = feedback.text;
+  elements.feedbackTitle.textContent =
+    feedback.title;
+
+  elements.feedbackText.textContent =
+    feedback.text;
+
   elements.feedbackBox.classList.remove("hidden");
 }
+
+/* =========================================================
+   能力要求
+   ========================================================= */
 
 function checkRequirement(requirement) {
   if (!requirement) {
     return true;
   }
 
-  return gameState.stats[requirement.stat] >= requirement.value;
-}
-
-function applyEffects(effects = {}) {
-  for (const [stat, amount] of Object.entries(effects)) {
-    if (stat in gameState.stats) {
-      gameState.stats[stat] += amount;
-      gameState.stats[stat] = Math.max(
-        0,
-        gameState.stats[stat]
-      );
-    }
+  if (requirement.type === "mastery") {
+    return (
+      gameState.mastery[requirement.key] >=
+      requirement.value
+    );
   }
+
+  return (
+    gameState.stats[requirement.key] >=
+    requirement.value
+  );
 }
 
 function createChoiceButton(choice) {
   const button = document.createElement("button");
-  const isAvailable = checkRequirement(choice.requirement);
+  const isAvailable =
+    checkRequirement(choice.requirement);
 
   button.className = "choice-button";
-  button.textContent = choice.text;
   button.disabled = !isAvailable;
 
+  const label = document.createElement("span");
+  label.textContent = choice.text;
+  button.appendChild(label);
+
   if (choice.requirement) {
-    const requirementText = document.createElement("span");
-    requirementText.className = "requirement-text";
+    const requirementText =
+      document.createElement("span");
+
+    requirementText.className =
+      "requirement-text";
+
     requirementText.textContent = isAvailable
       ? `已符合：${choice.requirement.label}`
       : choice.requirement.label;
@@ -457,6 +1169,10 @@ function createChoiceButton(choice) {
 
   return button;
 }
+
+/* =========================================================
+   一般場景系統
+   ========================================================= */
 
 function renderScene(sceneId, feedback = null) {
   const scene = scenes[sceneId];
@@ -476,14 +1192,30 @@ function renderScene(sceneId, feedback = null) {
     gameState.completed = true;
   }
 
-  elements.chapterTitle.textContent = scene.title;
-  elements.sceneLocation.textContent = scene.location;
-  elements.speakerName.textContent = scene.speaker;
-  elements.dialogueText.textContent = formatText(scene.text);
-  elements.progressText.textContent = scene.progress;
+  elements.chapterTitle.textContent =
+    scene.title;
+
+  elements.sceneLocation.textContent =
+    scene.location;
+
+  elements.speakerName.textContent =
+    scene.speaker;
+
+  elements.dialogueText.textContent =
+    formatText(scene.text);
+
+  elements.progressText.textContent =
+    scene.progress;
 
   showFeedback(feedback);
   updateStats();
+
+  if (elements.academyStatus) {
+    elements.academyStatus.classList.toggle(
+      "hidden",
+      gameState.academy.completed
+    );
+  }
 
   elements.choicesContainer.replaceChildren();
 
@@ -498,6 +1230,7 @@ function renderScene(sceneId, feedback = null) {
 
 function handleChoice(choice) {
   applyEffects(choice.effects);
+  applyMastery(choice.masteryEffects);
 
   if (choice.action) {
     runAction(choice.action);
@@ -511,6 +1244,7 @@ function handleChoice(choice) {
 
 function runAction(action) {
   const actions = {
+    openAcademy: () => renderAcademy(),
     showReport,
     returnTitle,
     restart: restartGame
@@ -521,6 +1255,271 @@ function runAction(action) {
   }
 }
 
+/* =========================================================
+   書院養成畫面
+   ========================================================= */
+
+function createMasteryGrid() {
+  const labels = {
+    context: "時局",
+    syntax: "句法",
+    character: "人物",
+    evidence: "引證"
+  };
+
+  const grid = document.createElement("div");
+  grid.className = "mastery-grid";
+
+  for (
+    const [key, label]
+    of Object.entries(labels)
+  ) {
+    const item = document.createElement("div");
+    item.className = "mastery-item";
+
+    const name = document.createElement("span");
+    name.textContent = label;
+
+    const value = document.createElement("strong");
+    value.textContent = getMasteryLabel(
+      gameState.mastery[key]
+    );
+
+    item.append(name, value);
+    grid.appendChild(item);
+  }
+
+  return grid;
+}
+
+function createAcademyActionButton(
+  actionId,
+  action
+) {
+  const academy = gameState.academy;
+  const button = document.createElement("button");
+
+  const alreadyUsed =
+    academy.dailyActions.includes(actionId);
+
+  const isExhausted =
+    academy.stress >= academy.maxStress;
+
+  const cannotAct =
+    academy.actionPoints <= 0 ||
+    alreadyUsed ||
+    (isExhausted && actionId !== "rest");
+
+  button.className = "choice-button";
+  button.disabled = cannotAct;
+
+  const title = document.createElement("strong");
+  title.textContent = action.name;
+
+  const description =
+    document.createElement("span");
+
+  description.className =
+    "choice-description";
+
+  description.textContent =
+    action.description;
+
+  const result = document.createElement("span");
+  result.className = "choice-result";
+
+  if (alreadyUsed) {
+    result.textContent = "今日已進行";
+  } else if (academy.actionPoints <= 0) {
+    result.textContent = "行動點不足";
+  } else if (
+    isExhausted &&
+    actionId !== "rest"
+  ) {
+    result.textContent = "心疲已滿，需要休息";
+  } else if (actionId === "rest") {
+    result.textContent =
+      "消耗 1 行動點，心疲 -3";
+  } else {
+    result.textContent =
+      `消耗 1 行動點，心疲 +${action.stress}`;
+  }
+
+  button.append(
+    title,
+    description,
+    result
+  );
+
+  button.addEventListener("click", () => {
+    takeAcademyAction(actionId);
+  });
+
+  return button;
+}
+
+function renderAcademy(feedback = null) {
+  const academy = gameState.academy;
+
+  gameState.currentScene = "academyHub";
+
+  elements.chapterTitle.textContent =
+    "書院修習";
+
+  elements.sceneLocation.textContent =
+    `修習第${academy.day}日`;
+
+  elements.speakerName.textContent =
+    "掌院先生";
+
+  elements.dialogueText.textContent =
+    academy.actionPoints > 0
+      ? "五日後朝廷將召見書院弟子。你要如何運用今日的時間？"
+      : "今日行動點已用盡。你可以結束今日修習，讓所學沉澱。";
+
+  elements.progressText.textContent =
+    `第 ${academy.day} / ${academy.maxDays} 日`;
+
+  showFeedback(feedback);
+  updateStats();
+
+  if (elements.academyStatus) {
+    elements.academyStatus.classList.remove(
+      "hidden"
+    );
+  }
+
+  elements.choicesContainer.replaceChildren();
+
+  elements.choicesContainer.appendChild(
+    createMasteryGrid()
+  );
+
+  for (
+    const [actionId, action]
+    of Object.entries(academyActions)
+  ) {
+    elements.choicesContainer.appendChild(
+      createAcademyActionButton(
+        actionId,
+        action
+      )
+    );
+  }
+
+  const endDayButton =
+    document.createElement("button");
+
+  endDayButton.className = "choice-button";
+
+  endDayButton.textContent =
+    academy.day >= academy.maxDays
+      ? "結束養成，接受朝廷徵召"
+      : "結束今日修習";
+
+  endDayButton.addEventListener(
+    "click",
+    endAcademyDay
+  );
+
+  elements.choicesContainer.appendChild(
+    endDayButton
+  );
+
+  saveGame(true);
+}
+
+function takeAcademyAction(actionId) {
+  const academy = gameState.academy;
+  const action = academyActions[actionId];
+
+  if (!action) {
+    return;
+  }
+
+  if (academy.actionPoints <= 0) {
+    return;
+  }
+
+  if (
+    academy.dailyActions.includes(actionId)
+  ) {
+    return;
+  }
+
+  if (
+    academy.stress >= academy.maxStress &&
+    actionId !== "rest"
+  ) {
+    return;
+  }
+
+  applyEffects(action.effects);
+  applyMastery(action.mastery);
+
+  academy.stress += action.stress;
+
+  academy.stress = Math.min(
+    academy.maxStress,
+    Math.max(0, academy.stress)
+  );
+
+  academy.actionPoints -= 1;
+  academy.dailyActions.push(actionId);
+  academy.lastFeedback = action.feedback;
+
+  renderAcademy(action.feedback);
+}
+
+function endAcademyDay() {
+  const academy = gameState.academy;
+
+  if (academy.actionPoints > 0) {
+    const confirmed = window.confirm(
+      `今日尚有 ${academy.actionPoints} 個行動點。確定提早結束嗎？`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+  }
+
+  if (academy.day >= academy.maxDays) {
+    academy.completed = true;
+    academy.lastFeedback = null;
+
+    renderScene("academySummons");
+    return;
+  }
+
+  academy.day += 1;
+  academy.dailyActions = [];
+  academy.lastFeedback = null;
+
+  academy.stress = Math.max(
+    0,
+    academy.stress - 1
+  );
+
+  academy.actionPoints =
+    academy.stress >= 5
+      ? 2
+      : academy.maxActionPoints;
+
+  renderAcademy({
+    title: `第${academy.day}日`,
+    text:
+      academy.actionPoints <
+      academy.maxActionPoints
+        ? "你昨夜未能完全恢復，今日只有兩個行動點。"
+        : "新的一日開始了。昨日所學仍需透過運用才能真正掌握。"
+  });
+}
+
+/* =========================================================
+   學習報告
+   ========================================================= */
+
 function showReport() {
   const total =
     gameState.stats.meaning +
@@ -530,38 +1529,106 @@ function showReport() {
 
   let rank = "初入文門";
 
-  if (total >= 8) {
+  if (total >= 28) {
+    rank = "文武兼備";
+  } else if (total >= 20) {
     rank = "明辨之士";
-  } else if (total >= 5) {
+  } else if (total >= 12) {
     rank = "好學弟子";
   }
 
-  elements.speakerName.textContent = "學習報告";
+  const masteryNames = {
+    context: "時局",
+    syntax: "句法",
+    character: "人物",
+    evidence: "引證"
+  };
+
+  const masteryReport = Object.entries(
+    masteryNames
+  )
+    .map(([key, name]) => {
+      return (
+        `${name}：` +
+        getMasteryLabel(gameState.mastery[key])
+      );
+    })
+    .join("\n");
+
+  const suggestions = [];
+
+  if (gameState.mastery.context < 2) {
+    suggestions.push(
+      "重溫秦強趙弱及趙國獻璧的兩難。"
+    );
+  }
+
+  if (gameState.mastery.syntax < 2) {
+    suggestions.push(
+      "加強倒裝句、被動句及重要字詞語譯。"
+    );
+  }
+
+  if (gameState.mastery.character < 2) {
+    suggestions.push(
+      "以具體言語和行動分析藺相如的智與勇。"
+    );
+  }
+
+  if (gameState.mastery.evidence < 2) {
+    suggestions.push(
+      "把關鍵原文與人物特點、事件原因連結。"
+    );
+  }
+
+  if (suggestions.length === 0) {
+    suggestions.push(
+      "你已掌握本章基礎，可挑戰不設選項的問答模式。"
+    );
+  }
+
+  elements.speakerName.textContent =
+    "學習報告";
 
   elements.dialogueText.textContent =
-    `${gameState.playerName}，你完成了序章。\n\n` +
+    `${gameState.playerName}，你完成了「完璧歸趙」。\n\n` +
     `文義：${gameState.stats.meaning}\n` +
     `明辨：${gameState.stats.reasoning}\n` +
     `德行：${gameState.stats.virtue}\n` +
     `學識：${gameState.stats.knowledge}\n\n` +
+    `${masteryReport}\n\n` +
     `本章評級：${rank}\n\n` +
-    "你已認識秦強趙弱的背景，並理解「求人可使報秦者」的基本句意。";
+    `修習建議：\n${suggestions.join("\n")}`;
 
-  elements.sceneLocation.textContent = "書院評鑑";
-  elements.progressText.textContent = "學習報告";
+  elements.sceneLocation.textContent =
+    "書院評鑑";
+
+  elements.progressText.textContent =
+    "學習報告";
 
   hideFeedback();
+
   elements.choicesContainer.replaceChildren();
 
-  const replayButton = document.createElement("button");
+  const replayButton =
+    document.createElement("button");
+
   replayButton.className = "choice-button";
   replayButton.textContent = "重新挑戰";
-  replayButton.addEventListener("click", restartGame);
+  replayButton.addEventListener(
+    "click",
+    restartGame
+  );
 
-  const titleButton = document.createElement("button");
+  const titleButton =
+    document.createElement("button");
+
   titleButton.className = "choice-button";
   titleButton.textContent = "返回開始畫面";
-  titleButton.addEventListener("click", returnTitle);
+  titleButton.addEventListener(
+    "click",
+    returnTitle
+  );
 
   elements.choicesContainer.append(
     replayButton,
@@ -569,14 +1636,21 @@ function showReport() {
   );
 }
 
+/* =========================================================
+   新遊戲、存檔和讀檔
+   ========================================================= */
+
 function startNewGame() {
-  const enteredName = elements.playerNameInput.value.trim();
+  const enteredName =
+    elements.playerNameInput.value.trim();
 
   gameState = cloneDefaultState();
-  gameState.playerName = enteredName || "無名";
+
+  gameState.playerName =
+    enteredName || "無名";
 
   switchScreen("game");
-  renderScene("prologue");
+  renderScene("academyArrival");
 }
 
 function saveGame(isAutoSave = false) {
@@ -586,10 +1660,13 @@ function saveGame(isAutoSave = false) {
       JSON.stringify(gameState)
     );
 
-    const time = new Date().toLocaleTimeString("zh-HK", {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
+    const time = new Date().toLocaleTimeString(
+      "zh-HK",
+      {
+        hour: "2-digit",
+        minute: "2-digit"
+      }
+    );
 
     elements.autosaveText.textContent =
       `${isAutoSave ? "自動儲存" : "已儲存"}：${time}`;
@@ -597,15 +1674,18 @@ function saveGame(isAutoSave = false) {
     elements.continueButton.disabled = false;
   } catch (error) {
     console.error("儲存失敗：", error);
-    elements.autosaveText.textContent = "儲存失敗";
+    elements.autosaveText.textContent =
+      "儲存失敗";
   }
 }
 
 function loadGame() {
-  const savedData = localStorage.getItem(SAVE_KEY);
+  const savedData =
+    localStorage.getItem(SAVE_KEY);
 
   if (!savedData) {
-    elements.saveMessage.textContent = "暫時沒有存檔。";
+    elements.saveMessage.textContent =
+      "暫時沒有存檔。";
     return;
   }
 
@@ -615,17 +1695,50 @@ function loadGame() {
     gameState = {
       ...cloneDefaultState(),
       ...parsedData,
+
       stats: {
         ...defaultState.stats,
-        ...parsedData.stats
-      }
+        ...(parsedData.stats || {})
+      },
+
+      academy: {
+        ...defaultState.academy,
+        ...(parsedData.academy || {})
+      },
+
+      mastery: {
+        ...defaultState.mastery,
+        ...(parsedData.mastery || {})
+      },
+
+      visitedScenes: Array.isArray(
+        parsedData.visitedScenes
+      )
+        ? parsedData.visitedScenes
+        : []
     };
 
     switchScreen("game");
-    renderScene(gameState.currentScene);
+
+    if (
+      gameState.currentScene === "academyHub"
+    ) {
+      renderAcademy(
+        gameState.academy.lastFeedback
+      );
+    } else if (scenes[gameState.currentScene]) {
+      renderScene(gameState.currentScene);
+    } else {
+      gameState.currentScene =
+        "academyArrival";
+
+      renderScene("academyArrival");
+    }
   } catch (error) {
     console.error("讀取存檔失敗：", error);
-    elements.saveMessage.textContent = "存檔損壞，請開始新遊戲。";
+
+    elements.saveMessage.textContent =
+      "存檔損壞，請開始新遊戲。";
   }
 }
 
@@ -638,19 +1751,25 @@ function restartGame() {
     return;
   }
 
-  const currentName = gameState.playerName;
+  const currentName =
+    gameState.playerName;
 
   localStorage.removeItem(SAVE_KEY);
+
   gameState = cloneDefaultState();
   gameState.playerName = currentName;
 
   switchScreen("game");
-  renderScene("prologue");
+  renderScene("academyArrival");
 }
 
 function returnTitle() {
+  saveGame(true);
   switchScreen("title");
-  elements.saveMessage.textContent = "遊戲進度已保留。";
+
+  elements.saveMessage.textContent =
+    "遊戲進度已保留。";
+
   updateContinueButton();
 }
 
@@ -659,8 +1778,13 @@ function updateContinueButton() {
     localStorage.getItem(SAVE_KEY)
   );
 
-  elements.continueButton.disabled = !hasSave;
+  elements.continueButton.disabled =
+    !hasSave;
 }
+
+/* =========================================================
+   鍵盤及按鈕事件
+   ========================================================= */
 
 elements.newGameButton.addEventListener(
   "click",
@@ -690,5 +1814,9 @@ elements.playerNameInput.addEventListener(
     }
   }
 );
+
+/* =========================================================
+   初始化
+   ========================================================= */
 
 updateContinueButton();
