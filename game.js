@@ -5,7 +5,7 @@
    完整 game.js
    ========================================================= */
 
-const SAVE_KEY = "wenxia_save_v3";
+const SAVE_KEY = "wenxia_save_v4";
 
 /* =========================================================
    初始遊戲狀態
@@ -32,17 +32,16 @@ const defaultState = {
     dailyActions: [],
     completed: false,
     lastFeedback: null,
-currentEvent: null,
-eventTriggeredToday: false,
-
-actionCounts: {
-  translate: 0,
-  politics: 0,
-  character: 0,
-  quotation: 0,
-  service: 0,
-  rest: 0
-}
+    currentEvent: null,
+    eventTriggeredToday: false,
+    actionCounts: {
+      translate: 0,
+      politics: 0,
+      character: 0,
+      quotation: 0,
+      service: 0,
+      rest: 0
+    }
   },
 
   mastery: {
@@ -51,17 +50,18 @@ actionCounts: {
     character: 0,
     evidence: 0
   },
-flags: {
-  correctedReport: false,
-  evidenceTraining: false,
-  merchantInsight: false,
-  copiedWrongText: false,
-  correctedCopy: false,
-  teacherGuidance: false
-},
 
-eventsSeen: [],
-eventHistory: [],
+  flags: {
+    correctedReport: false,
+    evidenceTraining: false,
+    merchantInsight: false,
+    copiedWrongText: false,
+    correctedCopy: false,
+    teacherGuidance: false
+  },
+
+  eventsSeen: [],
+  eventHistory: [],
   visitedScenes: [],
   completed: false
 };
@@ -910,9 +910,11 @@ const academyActions = {
     }
   }
 };
+
+
 /* =========================================================
-書院事件資料
-========================================================= */
+   書院隨機事件資料
+   ========================================================= */
 
 const academyEvents = {
   reportMeaning: {
@@ -920,57 +922,37 @@ const academyEvents = {
     location: "書院講堂",
     speaker: "同門弟子",
     text:
-      "一名同門正在語譯「求人可使報秦者」。\n\n" +
-      "他說：「這句是指尋找一個能夠向秦國報仇的人。」\n\n" +
+      "一名同門正在語譯『求人可使報秦者』。\n\n" +
+      "他說：『這句是指尋找一個能夠向秦國報仇的人。』\n\n" +
       "旁邊幾名弟子似乎也接受了這個解釋。你會怎樣處理？",
-
     condition(actionId) {
-      return (
-        actionId === "translate" ||
-        actionId === "service"
-      );
+      return actionId === "translate" || actionId === "service";
     },
-
     choices: [
       {
         text: "指出「報」在此解作答覆，並分析句子中心",
-        effects: {
-          meaning: 1,
-          virtue: 1,
-          knowledge: 1
-        },
-        masteryEffects: {
-          syntax: 1
-        },
-        flags: {
-          correctedReport: true
-        },
+        effects: { meaning: 1, virtue: 1, knowledge: 1 },
+        masteryEffects: { syntax: 1 },
+        flags: { correctedReport: true },
         feedback: {
           title: "教學相長",
-          text:
-            "你指出句子的中心是「求人」，「可使報秦」用來說明所尋找的人。「報」在此解作答覆秦國。"
+          text: "句子的中心是『求人』；『可使報秦』說明所尋找的人。『報』在此解作答覆秦國。"
         }
       },
       {
         text: "只告訴他答案錯了，但不作解釋",
-        effects: {
-          meaning: 1
-        },
+        effects: { meaning: 1 },
         feedback: {
           title: "解釋不足",
-          text:
-            "你判斷答案有誤，卻沒有說明錯在何處。完整語譯需要交代句子結構和語境字義。"
+          text: "你判斷答案有誤，卻沒有說明錯在何處。完整語譯需要交代句子結構和語境字義。"
         }
       },
       {
         text: "不糾正他，以免引起爭論",
-        effects: {
-          virtue: -1
-        },
+        effects: { virtue: -1 },
         feedback: {
           title: "錯義流傳",
-          text:
-            "錯誤解釋在同門之間流傳。你失去了一次透過教學鞏固知識的機會。"
+          text: "錯誤解釋在同門之間流傳。你失去了一次透過教學鞏固知識的機會。"
         }
       }
     ]
@@ -981,53 +963,36 @@ const academyEvents = {
     location: "書院正堂",
     speaker: "掌院先生",
     text:
-      "先生問：「若說藺相如機智，怎樣才能避免答案流於空泛？」\n\n" +
+      "先生問：『若說藺相如機智，怎樣才能避免答案流於空泛？』\n\n" +
       "他要求你從人物的言語、行動和處境中選擇證據。",
-
     condition() {
       return gameState.mastery.character >= 1;
     },
-
     choices: [
       {
         text: "先寫人物特點，再補一句「他十分聰明」",
-        effects: {
-          reasoning: -1
-        },
+        effects: { reasoning: -1 },
         feedback: {
           title: "循環解釋",
-          text:
-            "用「聰明」解釋「機智」只是重複觀點，沒有引用具體行動，也沒有分析行動原因。"
+          text: "用『聰明』解釋『機智』只是重複觀點，沒有引用具體行動，也沒有分析行動原因。"
         }
       },
       {
         text: "引用具體行動，解釋處境、動機及效果",
-        effects: {
-          reasoning: 2,
-          knowledge: 1
-        },
-        masteryEffects: {
-          character: 1,
-          evidence: 1
-        },
-        flags: {
-          evidenceTraining: true
-        },
+        effects: { reasoning: 2, knowledge: 1 },
+        masteryEffects: { character: 1, evidence: 1 },
+        flags: { evidenceTraining: true },
         feedback: {
           title: "論證完整",
-          text:
-            "人物分析可以採用「特點—行動或引文—處境與動機—扣題」的結構。"
+          text: "人物分析可以採用『特點—行動或引文—處境與動機—扣題』的結構。"
         }
       },
       {
         text: "列出大量原文，但不解釋它們與人物的關係",
-        effects: {
-          knowledge: 1
-        },
+        effects: { knowledge: 1 },
         feedback: {
           title: "有引無析",
-          text:
-            "引文只能提供證據。若不解釋證據如何呈現人物特點，答案仍不完整。"
+          text: "引文只能提供證據。若不解釋證據如何呈現人物特點，答案仍不完整。"
         }
       }
     ]
@@ -1038,53 +1003,36 @@ const academyEvents = {
     location: "書院前庭",
     speaker: "秦國商人",
     text:
-      "一名秦國商人帶着華麗貨物來到書院。他笑道：「秦國既願用十五城交換一塊玉，趙國豈不是佔了天大的便宜？」\n\n" +
+      "一名秦國商人帶着華麗貨物來到書院。他笑道：『秦國既願用十五城交換一塊玉，趙國豈不是佔了天大的便宜？』\n\n" +
       "部分同門聽後深以為然。",
-
     condition() {
       return gameState.academy.day >= 2;
     },
-
     choices: [
       {
         text: "同意商人：十五城的價值必定高於和氏璧",
-        effects: {
-          reasoning: -1
-        },
+        effects: { reasoning: -1 },
         feedback: {
           title: "只看表面利益",
-          text:
-            "交易價值不是唯一問題。趙國還要考慮秦國是否真會交城，以及拒絕交易可能帶來的後果。"
+          text: "交易價值不是唯一問題。趙國還要考慮秦國是否真會交城，以及拒絕交易可能帶來的後果。"
         }
       },
       {
         text: "指出關鍵是秦國會否履約，以及趙國能否避免受辱",
-        effects: {
-          reasoning: 2,
-          knowledge: 1
-        },
-        masteryEffects: {
-          context: 1
-        },
-        flags: {
-          merchantInsight: true
-        },
+        effects: { reasoning: 2, knowledge: 1 },
+        masteryEffects: { context: 1 },
+        flags: { merchantInsight: true },
         feedback: {
           title: "看破交易",
-          text:
-            "你沒有被十五城的表面價值迷惑，而是把國力、信用及外交後果納入判斷。"
+          text: "你沒有被十五城的表面價值迷惑，而是把國力、信用及外交後果納入判斷。"
         }
       },
       {
         text: "認為任何與秦國有關的交易都必須拒絕",
-        effects: {
-          reasoning: -1,
-          virtue: 1
-        },
+        effects: { reasoning: -1, virtue: 1 },
         feedback: {
           title: "立場有餘，分析不足",
-          text:
-            "拒絕也可能讓秦國取得出兵藉口。外交判斷不能只靠好惡。"
+          text: "拒絕也可能讓秦國取得出兵藉口。外交判斷不能只靠好惡。"
         }
       }
     ]
@@ -1095,67 +1043,41 @@ const academyEvents = {
     location: "藏經閣",
     speaker: "旁白",
     text:
-      "你在燈下整理簡牘。由於精神疲憊，竟把「求人可使報秦者」抄成意思完全不同的句子。\n\n" +
+      "你在燈下整理簡牘。由於精神疲憊，竟把『求人可使報秦者』抄成意思完全不同的句子。\n\n" +
       "明日這份簡牘便會交給其他弟子使用。",
-
     special: true,
-
     condition(actionId) {
-      return (
-        actionId === "quotation" &&
-        gameState.academy.stress >= 5
-      );
+      return actionId === "quotation" && gameState.academy.stress >= 5;
     },
-
     choices: [
       {
         text: "憑記憶立即修改，不再核對",
-        effects: {
-          meaning: -1
-        },
-        flags: {
-          copiedWrongText: true
-        },
+        effects: { meaning: -1 },
+        flags: { copiedWrongText: true },
         feedback: {
           title: "錯上加錯",
-          text:
-            "疲憊時只依賴模糊記憶容易再次出錯。錯誤簡牘被保留下來。"
+          text: "疲憊時只依賴模糊記憶容易再次出錯。錯誤簡牘被保留下來。"
         }
       },
       {
         text: "對照原卷，找出中心詞和「報」的語境意思",
-        effects: {
-          meaning: 1,
-          knowledge: 1
-        },
-        masteryEffects: {
-          syntax: 1,
-          evidence: 1
-        },
-        flags: {
-          correctedCopy: true
-        },
+        effects: { meaning: 1, knowledge: 1 },
+        masteryEffects: { syntax: 1, evidence: 1 },
+        flags: { correctedCopy: true },
         stress: 1,
         feedback: {
           title: "校勘完成",
-          text:
-            "你以原卷核對文字，並重新確認句法和字義。雖然耗費精神，卻避免錯誤流傳。"
+          text: "你以原卷核對文字，並重新確認句法和字義。雖然耗費精神，卻避免錯誤流傳。"
         }
       },
       {
         text: "先休息片刻，再請同門一起核對",
-        effects: {
-          virtue: 1,
-          meaning: 1
-        },
-        flags: {
-          correctedCopy: true
-        },
+        effects: { virtue: 1, meaning: 1 },
+        flags: { correctedCopy: true },
         stress: -2,
         feedback: {
           title: "合作校勘",
-          text:
-            "你承認自己疲憊，並以合作方式完成校勘。心疲降低了。"
+          text: "你承認自己疲憊，並以合作方式完成校勘。心疲降低了。"
         }
       }
     ]
@@ -1167,47 +1089,85 @@ const academyEvents = {
     speaker: "掌院先生",
     text:
       "先生看過你近日的語譯、人物品評和殘卷記誦，夜裏把你召到書室。\n\n" +
-      "「你已能解句，也開始懂得以證據分析人物。但真正面對強敵時，還要把文義、形勢與人物動機連成一體。」",
-
+      "『你已能解句，也開始懂得以證據分析人物。但真正面對強敵時，還要把文義、形勢與人物動機連成一體。』",
     special: true,
-
     condition() {
-      const counts =
-        gameState.academy.actionCounts;
-
-      return (
-        counts.translate >= 1 &&
-        counts.character >= 1 &&
-        counts.quotation >= 1
-      );
+      const counts = gameState.academy.actionCounts;
+      return counts.translate >= 1 && counts.character >= 1 && counts.quotation >= 1;
     },
-
     choices: [
       {
         text: "接受指點：先辨形勢，再選證據，最後判斷行動",
-        effects: {
-          meaning: 1,
-          reasoning: 2,
-          knowledge: 1
-        },
-        masteryEffects: {
-          context: 1,
-          syntax: 1,
-          character: 1,
-          evidence: 1
-        },
-        flags: {
-          teacherGuidance: true
-        },
+        effects: { meaning: 1, reasoning: 2, knowledge: 1 },
+        masteryEffects: { context: 1, syntax: 1, character: 1, evidence: 1 },
+        flags: { teacherGuidance: true },
         feedback: {
           title: "融會貫通",
-          text:
-            "你取得先生的錦囊。正式任務中，部分高階選項將直接開放。"
+          text: "你取得先生的錦囊。正式任務中，部分高階選項將直接開放。"
         }
       }
     ]
   }
 };
+
+/* 將書院學習轉化為主線隱藏選項 */
+scenes.court.choices.unshift({
+  text: "【書院領悟】十五城只是表面條件，必須考慮秦國信用與兩國強弱",
+  description: "你想起秦國商人在書院提出的交易說法。",
+  next: "courtAnalysis",
+  hiddenWhenLocked: true,
+  isHiddenOption: true,
+  requirement: { type: "flag", key: "merchantInsight", value: true },
+  effects: { reasoning: 2, knowledge: 1 },
+  masteryEffects: { context: 1 },
+  feedback: {
+    title: "書院所學：時局",
+    text: "你把書院中的商人事件應用到真正的外交危機，沒有只看十五城的表面價值。"
+  }
+});
+
+scenes.courtQuestion.choices.unshift({
+  text: "【教學相長】『報』是答覆；全句指尋找可以出使答覆秦國的人",
+  next: "recommendation",
+  hiddenWhenLocked: true,
+  isHiddenOption: true,
+  requirement: { type: "flag", key: "correctedReport", value: true },
+  effects: { meaning: 2, knowledge: 1 },
+  masteryEffects: { syntax: 1 },
+  feedback: {
+    title: "書院所學：句法",
+    text: "你曾向同門解釋這個句式，因此在朝堂上立即辨認出中心詞和語境字義。"
+  }
+});
+
+scenes.miaoXianStory.choices.unshift({
+  text: "【先生問證】從燕趙強弱、繆賢身分及燕王動機建立證據鏈",
+  next: "miaoXianCorrect",
+  hiddenWhenLocked: true,
+  isHiddenOption: true,
+  requirement: { type: "flag", key: "evidenceTraining", value: true },
+  effects: { reasoning: 2, knowledge: 1 },
+  masteryEffects: { context: 1, character: 1, evidence: 1 },
+  feedback: {
+    title: "書院所學：論證",
+    text: "你利用形勢、身分、動機和結果支持人物判斷，而非空泛地說藺相如聰明。"
+  }
+});
+
+scenes.missionOffer.choices.unshift({
+  text: "【掌院錦囊】以形勢、文義和證據協助藺相如出使",
+  description: "此選項不受原本『明辨 3』限制。",
+  next: "qinArrival",
+  hiddenWhenLocked: true,
+  isHiddenOption: true,
+  requirement: { type: "flag", key: "teacherGuidance", value: true },
+  effects: { virtue: 1, reasoning: 1, knowledge: 1 },
+  feedback: {
+    title: "特殊路線開啟",
+    text: "掌院先生的指點讓你獲得藺相如認可，憑融會貫通加入使團。"
+  }
+});
+
 /* =========================================================
    HTML 元素
    ========================================================= */
@@ -1438,53 +1398,71 @@ function showFeedback(feedback) {
    ========================================================= */
 
 function checkRequirement(requirement) {
-  if (!requirement) {
-    return true;
+  if (!requirement) return true;
+
+  if (requirement.type === "all") {
+    return requirement.requirements.every(checkRequirement);
+  }
+
+  if (requirement.type === "any") {
+    return requirement.requirements.some(checkRequirement);
+  }
+
+  if (requirement.type === "flag") {
+    return Boolean(gameState.flags[requirement.key]) === (requirement.value ?? true);
   }
 
   if (requirement.type === "mastery") {
-    return (
-      gameState.mastery[requirement.key] >=
-      requirement.value
-    );
+    return gameState.mastery[requirement.key] >= requirement.value;
   }
 
-  return (
-    gameState.stats[requirement.key] >=
-    requirement.value
-  );
+  if (requirement.type === "action") {
+    return gameState.academy.actionCounts[requirement.key] >= requirement.value;
+  }
+
+  if (requirement.type === "stat") {
+    return gameState.stats[requirement.key] >= requirement.value;
+  }
+
+  return true;
 }
 
 function createChoiceButton(choice) {
-  const button = document.createElement("button");
-  const isAvailable =
-    checkRequirement(choice.requirement);
+  const isAvailable = checkRequirement(choice.requirement);
 
+  if (choice.hiddenWhenLocked && !isAvailable) {
+    return null;
+  }
+
+  const button = document.createElement("button");
   button.className = "choice-button";
   button.disabled = !isAvailable;
+
+  if (choice.isHiddenOption) {
+    button.classList.add("hidden-choice-button");
+  }
 
   const label = document.createElement("span");
   label.textContent = choice.text;
   button.appendChild(label);
 
-  if (choice.requirement) {
-    const requirementText =
-      document.createElement("span");
+  if (choice.description) {
+    const description = document.createElement("span");
+    description.className = "choice-description";
+    description.textContent = choice.description;
+    button.appendChild(description);
+  }
 
-    requirementText.className =
-      "requirement-text";
-
+  if (choice.requirement && !choice.hiddenWhenLocked) {
+    const requirementText = document.createElement("span");
+    requirementText.className = "requirement-text";
     requirementText.textContent = isAvailable
-      ? `已符合：${choice.requirement.label}`
-      : choice.requirement.label;
-
+      ? `已符合：${choice.requirement.label || "能力要求"}`
+      : choice.requirement.label || "尚未符合要求";
     button.appendChild(requirementText);
   }
 
-  button.addEventListener("click", () => {
-    handleChoice(choice);
-  });
-
+  button.addEventListener("click", () => handleChoice(choice));
   return button;
 }
 
@@ -1538,17 +1516,24 @@ function renderScene(sceneId, feedback = null) {
   elements.choicesContainer.replaceChildren();
 
   scene.choices.forEach((choice) => {
-    elements.choicesContainer.appendChild(
-      createChoiceButton(choice)
-    );
+    const button = createChoiceButton(choice);
+    if (button) {
+      elements.choicesContainer.appendChild(button);
+    }
   });
 
   saveGame(true);
 }
 
 function handleChoice(choice) {
+  if (choice.action === "academyEventChoice") {
+    resolveAcademyEvent(choice.eventId, choice.choiceIndex);
+    return;
+  }
+
   applyEffects(choice.effects);
   applyMastery(choice.masteryEffects);
+  applyFlags(choice.flags);
 
   if (choice.action) {
     runAction(choice.action);
@@ -1571,6 +1556,122 @@ function runAction(action) {
   if (actions[action]) {
     actions[action]();
   }
+}
+
+
+/* =========================================================
+   書院隨機事件系統
+   ========================================================= */
+
+function applyFlags(flags = {}) {
+  for (const [flag, value] of Object.entries(flags)) {
+    if (flag in gameState.flags) gameState.flags[flag] = value;
+  }
+}
+
+function hasSeenEvent(eventId) {
+  return gameState.eventsSeen.includes(eventId);
+}
+
+function getEligibleAcademyEvents(actionId) {
+  return Object.entries(academyEvents).filter(([eventId, event]) => {
+    if (hasSeenEvent(eventId)) return false;
+    return event.condition(actionId);
+  });
+}
+
+function chooseRandomItem(items) {
+  if (items.length === 0) return null;
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function maybeTriggerAcademyEvent(actionId) {
+  const academy = gameState.academy;
+  const eligible = getEligibleAcademyEvents(actionId);
+  if (eligible.length === 0) return false;
+
+  const specialEvent = eligible.find(([, event]) => event.special);
+  if (specialEvent) {
+    renderAcademyEvent(specialEvent[0]);
+    return true;
+  }
+
+  if (academy.eventTriggeredToday) return false;
+
+  const eventChance = academy.day >= 5 ? 0.75 : 0.45;
+  if (Math.random() > eventChance) return false;
+
+  const selected = chooseRandomItem(eligible);
+  if (!selected) return false;
+
+  renderAcademyEvent(selected[0]);
+  return true;
+}
+
+function renderAcademyEvent(eventId) {
+  const event = academyEvents[eventId];
+  if (!event) {
+    console.error(`找不到書院事件：${eventId}`);
+    renderAcademy();
+    return;
+  }
+
+  gameState.currentScene = "academyEvent";
+  gameState.academy.currentEvent = eventId;
+  if (!hasSeenEvent(eventId)) gameState.eventsSeen.push(eventId);
+
+  elements.chapterTitle.textContent = event.title;
+  elements.sceneLocation.textContent = event.location;
+  elements.speakerName.textContent = event.speaker;
+  elements.dialogueText.textContent = formatText(event.text);
+  elements.progressText.textContent = `第 ${gameState.academy.day} 日事件`;
+
+  hideFeedback();
+  updateStats();
+  elements.choicesContainer.replaceChildren();
+
+  event.choices.forEach((choice, choiceIndex) => {
+    const button = createChoiceButton({
+      ...choice,
+      action: "academyEventChoice",
+      eventId,
+      choiceIndex
+    });
+    if (button) elements.choicesContainer.appendChild(button);
+  });
+
+  saveGame(true);
+}
+
+function resolveAcademyEvent(eventId, choiceIndex) {
+  const event = academyEvents[eventId];
+  const choice = event?.choices[choiceIndex];
+  if (!event || !choice) {
+    renderAcademy();
+    return;
+  }
+
+  applyEffects(choice.effects);
+  applyMastery(choice.masteryEffects);
+  applyFlags(choice.flags);
+
+  if (choice.stress) {
+    gameState.academy.stress += choice.stress;
+    gameState.academy.stress = Math.min(
+      gameState.academy.maxStress,
+      Math.max(0, gameState.academy.stress)
+    );
+  }
+
+  gameState.academy.eventTriggeredToday = true;
+  gameState.academy.currentEvent = null;
+  gameState.eventHistory.push({
+    eventId,
+    choiceIndex,
+    day: gameState.academy.day
+  });
+  gameState.academy.lastFeedback = choice.feedback;
+  renderAcademy(choice.feedback);
 }
 
 /* =========================================================
@@ -1751,42 +1852,25 @@ function takeAcademyAction(actionId) {
   const academy = gameState.academy;
   const action = academyActions[actionId];
 
-  if (!action) {
-    return;
-  }
-
-  if (academy.actionPoints <= 0) {
-    return;
-  }
-
-  if (
-    academy.dailyActions.includes(actionId)
-  ) {
-    return;
-  }
-
-  if (
-    academy.stress >= academy.maxStress &&
-    actionId !== "rest"
-  ) {
-    return;
-  }
+  if (!action || academy.actionPoints <= 0) return;
+  if (academy.dailyActions.includes(actionId)) return;
+  if (academy.stress >= academy.maxStress && actionId !== "rest") return;
 
   applyEffects(action.effects);
   applyMastery(action.mastery);
 
-  academy.stress += action.stress;
-
   academy.stress = Math.min(
     academy.maxStress,
-    Math.max(0, academy.stress)
+    Math.max(0, academy.stress + action.stress)
   );
 
   academy.actionPoints -= 1;
   academy.dailyActions.push(actionId);
+  academy.actionCounts[actionId] = (academy.actionCounts[actionId] || 0) + 1;
   academy.lastFeedback = action.feedback;
 
-  renderAcademy(action.feedback);
+  const eventStarted = maybeTriggerAcademyEvent(actionId);
+  if (!eventStarted) renderAcademy(action.feedback);
 }
 
 function endAcademyDay() {
@@ -1813,6 +1897,8 @@ function endAcademyDay() {
   academy.day += 1;
   academy.dailyActions = [];
   academy.lastFeedback = null;
+  academy.currentEvent = null;
+  academy.eventTriggeredToday = false;
 
   academy.stress = Math.max(
     0,
@@ -1998,12 +2084,10 @@ function saveGame(isAutoSave = false) {
 }
 
 function loadGame() {
-  const savedData =
-    localStorage.getItem(SAVE_KEY);
+  const savedData = localStorage.getItem(SAVE_KEY);
 
   if (!savedData) {
-    elements.saveMessage.textContent =
-      "暫時沒有存檔。";
+    elements.saveMessage.textContent = "暫時沒有存檔。";
     return;
   }
 
@@ -2013,50 +2097,53 @@ function loadGame() {
     gameState = {
       ...cloneDefaultState(),
       ...parsedData,
-
       stats: {
         ...defaultState.stats,
         ...(parsedData.stats || {})
       },
-
       academy: {
         ...defaultState.academy,
-        ...(parsedData.academy || {})
+        ...(parsedData.academy || {}),
+        actionCounts: {
+          ...defaultState.academy.actionCounts,
+          ...(parsedData.academy?.actionCounts || {})
+        },
+        dailyActions: Array.isArray(parsedData.academy?.dailyActions)
+          ? parsedData.academy.dailyActions
+          : []
       },
-
       mastery: {
         ...defaultState.mastery,
         ...(parsedData.mastery || {})
       },
-
-      visitedScenes: Array.isArray(
-        parsedData.visitedScenes
-      )
-        ? parsedData.visitedScenes
-        : []
+      flags: {
+        ...defaultState.flags,
+        ...(parsedData.flags || {})
+      },
+      eventsSeen: Array.isArray(parsedData.eventsSeen) ? parsedData.eventsSeen : [],
+      eventHistory: Array.isArray(parsedData.eventHistory) ? parsedData.eventHistory : [],
+      visitedScenes: Array.isArray(parsedData.visitedScenes) ? parsedData.visitedScenes : []
     };
 
     switchScreen("game");
 
     if (
-      gameState.currentScene === "academyHub"
+      gameState.currentScene === "academyEvent" &&
+      gameState.academy.currentEvent &&
+      academyEvents[gameState.academy.currentEvent]
     ) {
-      renderAcademy(
-        gameState.academy.lastFeedback
-      );
+      renderAcademyEvent(gameState.academy.currentEvent);
+    } else if (gameState.currentScene === "academyHub") {
+      renderAcademy(gameState.academy.lastFeedback);
     } else if (scenes[gameState.currentScene]) {
       renderScene(gameState.currentScene);
     } else {
-      gameState.currentScene =
-        "academyArrival";
-
+      gameState.currentScene = "academyArrival";
       renderScene("academyArrival");
     }
   } catch (error) {
     console.error("讀取存檔失敗：", error);
-
-    elements.saveMessage.textContent =
-      "存檔損壞，請開始新遊戲。";
+    elements.saveMessage.textContent = "存檔損壞，請開始新遊戲。";
   }
 }
 
