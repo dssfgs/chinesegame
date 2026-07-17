@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="《文俠傳：完璧風雲》——文言文武俠學習遊戲"
+  >
+
+  <title>文俠傳：完璧風雲</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <main id="game-app">
+
+    <!-- 開始畫面 -->
+    <section id="title-screen" class="screen active">
+      <div class="title-panel">
+        <p class="small-title">十二典章之一</p>
+
+        <h1>文俠傳</h1>
+        <h2>完璧風雲</h2>
+
+        <p class="opening-text">
+          秦王以十五城求和氏璧。<br>
+          趙國朝野震動，而你只是一名初入書院的無名弟子。
+        </p>
+
+        <label for="player-name">你的名字</label>
+
+        <input
+          id="player-name"
+          type="text"
+          maxlength="8"
+          placeholder="無名弟子"
+          autocomplete="off"
+        >
+
+        <div class="title-buttons">
+          <button id="new-game-button" class="primary-button">
+            踏入江湖
+          </button>
+
+          <button id="continue-button" class="secondary-button">
+            繼續遊戲
+          </button>
+        </div>
+
+        <p id="save-message" class="save-message"></p>
+      </div>
+    </section>
+
+    <!-- 主遊戲畫面 -->
+    <section id="game-screen" class="screen">
+
+      <header class="top-bar">
+        <div>
+          <p class="chapter-label">第一章</p>
+          <h2 id="chapter-title">和氏璧現世</h2>
+        </div>
+
+        <div class="top-buttons">
+          <button id="save-button" class="small-button">
+            儲存
+          </button>
+
+          <button id="restart-button" class="small-button danger-button">
+            重置
+          </button>
+        </div>
+      </header>
+
+      <!-- 玩家資料 -->
+      <section class="status-panel">
+        <div class="player-info">
+          <span>弟子</span>
+          <strong id="player-name-display">無名</strong>
+        </div>
+
+        <div class="stat">
+          <span>文義</span>
+          <strong id="stat-meaning">0</strong>
+        </div>
+
+        <div class="stat">
+          <span>明辨</span>
+          <strong id="stat-reasoning">0</strong>
+        </div>
+
+        <div class="stat">
+          <span>德行</span>
+          <strong id="stat-virtue">0</strong>
+        </div>
+
+        <div class="stat">
+          <span>學識</span>
+          <strong id="stat-knowledge">0</strong>
+        </div>
+      </section>
+
+<!-- 書院養成狀態 -->
+<section id="academy-status" class="academy-status">
+  <div class="academy-day">
+    <span>修習日期</span>
+    <strong>
+      第 <span id="academy-day-value">1</span> 日
+    </strong>
+  </div>
+
+  <div class="academy-resource">
+    <span>行動點</span>
+
+    <div
+      id="action-point-pips"
+      class="resource-pips"
+      aria-label="剩餘行動點"
+    ></div>
+  </div>
+
+  <div class="academy-resource">
+    <span>心疲</span>
+
+    <div class="meter">
+      <div id="stress-meter" class="meter-fill"></div>
+    </div>
+
+    <strong id="stress-value">0 / 6</strong>
+  </div>
+</section>
+
+
+
+      <!-- 場景 -->
+      <section id="scene-panel" class="scene-panel">
+        <div id="scene-location" class="scene-location">
+          趙國書院
+        </div>
+
+        <div class="scene-decoration" aria-hidden="true">
+          <span>山</span>
+          <span>雲</span>
+          <span>卷</span>
+        </div>
+      </section>
+
+      <!-- 對話 -->
+      <section class="dialogue-panel">
+        <div class="speaker-row">
+          <span id="speaker-name">旁白</span>
+        </div>
+
+        <p id="dialogue-text">
+          戰國之世，七雄並立。趙惠文王得楚國和氏璧，
+          消息傳至秦國，一場風波由此而起。
+        </p>
+
+        <div id="feedback-box" class="feedback-box hidden">
+          <strong id="feedback-title">文義領悟</strong>
+          <p id="feedback-text"></p>
+        </div>
+
+        <div id="choices-container" class="choices-container"></div>
+      </section>
+
+      <footer class="game-footer">
+        <span id="progress-text">序章</span>
+        <span id="autosave-text">尚未儲存</span>
+      </footer>
+
+    </section>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
