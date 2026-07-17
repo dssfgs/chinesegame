@@ -1,4 +1,4 @@
-21:26 17/7/2026"use strict";
+"use strict";
 
 /* =========================================================
    文俠傳：完璧風雲
@@ -1427,7 +1427,7 @@ function checkRequirement(requirement) {
   }
 
   if (requirement.type === "flag") {
-    return Boolean(gameState.flags[requirement.key]) === (requirement.value ?? true);
+    return Boolean(gameState.flags[requirement.key]) === (requirement.value === undefined ? true : requirement.value);
   }
 
   if (requirement.type === "mastery") {
@@ -1556,7 +1556,7 @@ function isFormalWrongAnswer(choice) {
 }
 
 function getFailureLesson(choice) {
-  if (choice.feedback?.text) return choice.feedback.text;
+  if (choice.feedback && choice.feedback.text) return choice.feedback.text;
 
   const lessons = {
     court: "外交危機不能只靠藏匿或逃避；必須同時分析獻璧、拒秦及秦國失信的風險。",
@@ -1581,7 +1581,7 @@ function renderBadEnding(choice) {
 
   gameState.failure = {
     sceneId: failedScene,
-    sceneTitle: scene?.title || "任務判斷",
+    sceneTitle: scene && scene.title || "任務判斷",
     answer: choice.text,
     lesson
   };
@@ -1593,7 +1593,7 @@ function renderBadEnding(choice) {
   elements.speakerName.textContent = "掌院先生";
   elements.progressText.textContent = "失敗結局";
   elements.dialogueText.textContent =
-    `【壞結局】${scene?.title || "正式任務"}\n\n` +
+    `【壞結局】${scene && scene.title || "正式任務"}\n\n` +
     `你的選擇：${choice.text}\n\n` +
     "這個判斷使使團失去主動，趙國無法繼續把重要任務交給你。你被送回書院重新研習。\n\n" +
     `【任務結果】策略失效\n${lesson}\n\n` +
@@ -1772,7 +1772,7 @@ function renderAcademyEvent(eventId) {
 
 function resolveAcademyEvent(eventId, choiceIndex) {
   const event = academyEvents[eventId];
-  const choice = event?.choices[choiceIndex];
+  const choice = event && event.choices[choiceIndex];
   if (!event || !choice) {
     renderAcademy();
     return;
@@ -1799,9 +1799,9 @@ function resolveAcademyEvent(eventId, choiceIndex) {
   });
   const passed = !choiceHasNegativeEffect(choice);
   const educationalFeedback = {
-    title: `${passed ? "判定成功" : "判定失敗"}｜${choice.feedback?.title || event.title}`,
+    title: `${passed ? "判定成功" : "判定失敗"}｜${choice.feedback && choice.feedback.title || event.title}`,
     text:
-      `${choice.feedback?.text || "你完成了這次判斷。"}
+      `${choice.feedback && choice.feedback.text || "你完成了這次判斷。"}
 
 ` +
       `【學習重點】${event.educationNote}`
@@ -2243,9 +2243,9 @@ function loadGame() {
         ...(parsedData.academy || {}),
         actionCounts: {
           ...defaultState.academy.actionCounts,
-          ...(parsedData.academy?.actionCounts || {})
+          ...(parsedData.academy && parsedData.academy.actionCounts || {})
         },
-        dailyActions: Array.isArray(parsedData.academy?.dailyActions)
+        dailyActions: Array.isArray(parsedData.academy && parsedData.academy.dailyActions)
           ? parsedData.academy.dailyActions
           : []
       },
