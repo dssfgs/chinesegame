@@ -910,7 +910,304 @@ const academyActions = {
     }
   }
 };
+/* =========================================================
+書院事件資料
+========================================================= */
 
+const academyEvents = {
+  reportMeaning: {
+    title: "「報秦」之爭",
+    location: "書院講堂",
+    speaker: "同門弟子",
+    text:
+      "一名同門正在語譯「求人可使報秦者」。\n\n" +
+      "他說：「這句是指尋找一個能夠向秦國報仇的人。」\n\n" +
+      "旁邊幾名弟子似乎也接受了這個解釋。你會怎樣處理？",
+
+    condition(actionId) {
+      return (
+        actionId === "translate" ||
+        actionId === "service"
+      );
+    },
+
+    choices: [
+      {
+        text: "指出「報」在此解作答覆，並分析句子中心",
+        effects: {
+          meaning: 1,
+          virtue: 1,
+          knowledge: 1
+        },
+        masteryEffects: {
+          syntax: 1
+        },
+        flags: {
+          correctedReport: true
+        },
+        feedback: {
+          title: "教學相長",
+          text:
+            "你指出句子的中心是「求人」，「可使報秦」用來說明所尋找的人。「報」在此解作答覆秦國。"
+        }
+      },
+      {
+        text: "只告訴他答案錯了，但不作解釋",
+        effects: {
+          meaning: 1
+        },
+        feedback: {
+          title: "解釋不足",
+          text:
+            "你判斷答案有誤，卻沒有說明錯在何處。完整語譯需要交代句子結構和語境字義。"
+        }
+      },
+      {
+        text: "不糾正他，以免引起爭論",
+        effects: {
+          virtue: -1
+        },
+        feedback: {
+          title: "錯義流傳",
+          text:
+            "錯誤解釋在同門之間流傳。你失去了一次透過教學鞏固知識的機會。"
+        }
+      }
+    ]
+  },
+
+  teacherEvidence: {
+    title: "先生問證",
+    location: "書院正堂",
+    speaker: "掌院先生",
+    text:
+      "先生問：「若說藺相如機智，怎樣才能避免答案流於空泛？」\n\n" +
+      "他要求你從人物的言語、行動和處境中選擇證據。",
+
+    condition() {
+      return gameState.mastery.character >= 1;
+    },
+
+    choices: [
+      {
+        text: "先寫人物特點，再補一句「他十分聰明」",
+        effects: {
+          reasoning: -1
+        },
+        feedback: {
+          title: "循環解釋",
+          text:
+            "用「聰明」解釋「機智」只是重複觀點，沒有引用具體行動，也沒有分析行動原因。"
+        }
+      },
+      {
+        text: "引用具體行動，解釋處境、動機及效果",
+        effects: {
+          reasoning: 2,
+          knowledge: 1
+        },
+        masteryEffects: {
+          character: 1,
+          evidence: 1
+        },
+        flags: {
+          evidenceTraining: true
+        },
+        feedback: {
+          title: "論證完整",
+          text:
+            "人物分析可以採用「特點—行動或引文—處境與動機—扣題」的結構。"
+        }
+      },
+      {
+        text: "列出大量原文，但不解釋它們與人物的關係",
+        effects: {
+          knowledge: 1
+        },
+        feedback: {
+          title: "有引無析",
+          text:
+            "引文只能提供證據。若不解釋證據如何呈現人物特點，答案仍不完整。"
+        }
+      }
+    ]
+  },
+
+  qinMerchant: {
+    title: "秦商入院",
+    location: "書院前庭",
+    speaker: "秦國商人",
+    text:
+      "一名秦國商人帶着華麗貨物來到書院。他笑道：「秦國既願用十五城交換一塊玉，趙國豈不是佔了天大的便宜？」\n\n" +
+      "部分同門聽後深以為然。",
+
+    condition() {
+      return gameState.academy.day >= 2;
+    },
+
+    choices: [
+      {
+        text: "同意商人：十五城的價值必定高於和氏璧",
+        effects: {
+          reasoning: -1
+        },
+        feedback: {
+          title: "只看表面利益",
+          text:
+            "交易價值不是唯一問題。趙國還要考慮秦國是否真會交城，以及拒絕交易可能帶來的後果。"
+        }
+      },
+      {
+        text: "指出關鍵是秦國會否履約，以及趙國能否避免受辱",
+        effects: {
+          reasoning: 2,
+          knowledge: 1
+        },
+        masteryEffects: {
+          context: 1
+        },
+        flags: {
+          merchantInsight: true
+        },
+        feedback: {
+          title: "看破交易",
+          text:
+            "你沒有被十五城的表面價值迷惑，而是把國力、信用及外交後果納入判斷。"
+        }
+      },
+      {
+        text: "認為任何與秦國有關的交易都必須拒絕",
+        effects: {
+          reasoning: -1,
+          virtue: 1
+        },
+        feedback: {
+          title: "立場有餘，分析不足",
+          text:
+            "拒絕也可能讓秦國取得出兵藉口。外交判斷不能只靠好惡。"
+        }
+      }
+    ]
+  },
+
+  copyingError: {
+    title: "錯抄簡牘",
+    location: "藏經閣",
+    speaker: "旁白",
+    text:
+      "你在燈下整理簡牘。由於精神疲憊，竟把「求人可使報秦者」抄成意思完全不同的句子。\n\n" +
+      "明日這份簡牘便會交給其他弟子使用。",
+
+    special: true,
+
+    condition(actionId) {
+      return (
+        actionId === "quotation" &&
+        gameState.academy.stress >= 5
+      );
+    },
+
+    choices: [
+      {
+        text: "憑記憶立即修改，不再核對",
+        effects: {
+          meaning: -1
+        },
+        flags: {
+          copiedWrongText: true
+        },
+        feedback: {
+          title: "錯上加錯",
+          text:
+            "疲憊時只依賴模糊記憶容易再次出錯。錯誤簡牘被保留下來。"
+        }
+      },
+      {
+        text: "對照原卷，找出中心詞和「報」的語境意思",
+        effects: {
+          meaning: 1,
+          knowledge: 1
+        },
+        masteryEffects: {
+          syntax: 1,
+          evidence: 1
+        },
+        flags: {
+          correctedCopy: true
+        },
+        stress: 1,
+        feedback: {
+          title: "校勘完成",
+          text:
+            "你以原卷核對文字，並重新確認句法和字義。雖然耗費精神，卻避免錯誤流傳。"
+        }
+      },
+      {
+        text: "先休息片刻，再請同門一起核對",
+        effects: {
+          virtue: 1,
+          meaning: 1
+        },
+        flags: {
+          correctedCopy: true
+        },
+        stress: -2,
+        feedback: {
+          title: "合作校勘",
+          text:
+            "你承認自己疲憊，並以合作方式完成校勘。心疲降低了。"
+        }
+      }
+    ]
+  },
+
+  teacherGuidance: {
+    title: "夜授錦囊",
+    location: "掌院書室",
+    speaker: "掌院先生",
+    text:
+      "先生看過你近日的語譯、人物品評和殘卷記誦，夜裏把你召到書室。\n\n" +
+      "「你已能解句，也開始懂得以證據分析人物。但真正面對強敵時，還要把文義、形勢與人物動機連成一體。」",
+
+    special: true,
+
+    condition() {
+      const counts =
+        gameState.academy.actionCounts;
+
+      return (
+        counts.translate >= 1 &&
+        counts.character >= 1 &&
+        counts.quotation >= 1
+      );
+    },
+
+    choices: [
+      {
+        text: "接受指點：先辨形勢，再選證據，最後判斷行動",
+        effects: {
+          meaning: 1,
+          reasoning: 2,
+          knowledge: 1
+        },
+        masteryEffects: {
+          context: 1,
+          syntax: 1,
+          character: 1,
+          evidence: 1
+        },
+        flags: {
+          teacherGuidance: true
+        },
+        feedback: {
+          title: "融會貫通",
+          text:
+            "你取得先生的錦囊。正式任務中，部分高階選項將直接開放。"
+        }
+      }
+    ]
+  }
+};
 /* =========================================================
    HTML 元素
    ========================================================= */
