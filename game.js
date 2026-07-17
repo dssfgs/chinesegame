@@ -51,7 +51,17 @@ actionCounts: {
     character: 0,
     evidence: 0
   },
+flags: {
+  correctedReport: false,
+  evidenceTraining: false,
+  merchantInsight: false,
+  copiedWrongText: false,
+  correctedCopy: false,
+  teacherGuidance: false
+},
 
+eventsSeen: [],
+eventHistory: [],
   visitedScenes: [],
   completed: false
 };
