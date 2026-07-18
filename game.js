@@ -1,11 +1,11 @@
 "use strict";
 
 /* =========================================================
-   文俠傳：完璧風雲
+   文俠傳：十二典章
    完整 game.js
    ========================================================= */
 
-const SAVE_KEY = "wenxia_save_v9";
+const SAVE_KEY = "wenxia_save_v10";
 
 /* =========================================================
    初始遊戲狀態
@@ -25,8 +25,8 @@ const defaultState = {
   academy: {
     day: 1,
     maxDays: 5,
-    actionPoints: 3,
-    maxActionPoints: 3,
+    actionPoints: 1,
+    maxActionPoints: 1,
     stress: 0,
     maxStress: 6,
     dailyActions: [],
@@ -2061,8 +2061,15 @@ function renderAcademy(feedback = null) {
   elements.chapterTitle.textContent = "《廉頗藺相如列傳》五日備試";
   elements.sceneLocation.textContent = `修習第${academy.day}日`;
   elements.speakerName.textContent = "掌院先生";
+  const chapterAtmosphere = {
+    1: "書院收到趙境急報：秦王以十五城求和氏璧。掌院命你先破解國書中的文言句式。",
+    2: "朝堂使者入院求策。你要在秦強趙弱的局勢中整理一條可行的外交路線。",
+    3: "澠池風聲傳回趙境。史官留下的人物紀錄互有矛盾，等待你以行動和言語辨真。",
+    4: "廉、藺失和的傳聞流入學宮。你要從殘卷找回能解釋將相抉擇的原文。",
+    5: "焚典令的追兵逼近。你必須重整三卷史事，保存《廉頗藺相如列傳》的結構和思想。"
+  };
   elements.dialogueText.textContent =
-    `今日主題：${academyDayThemes[academy.day]}。所有修習、錯題重溫及評核均只取材自《廉頗藺相如列傳》。`;
+    `${chapterAtmosphere[academy.day]}\n\n今日只有一次行動機會；修習結果、特殊事件和後續劇情會記錄你的選擇。`;
   elements.progressText.textContent = `第 ${academy.day} / ${academy.maxDays} 日`;
 
   showFeedback(feedback);
@@ -2318,12 +2325,12 @@ function endAcademyDay() {
   academy.currentEvent = null;
   academy.eventTriggeredToday = false;
   academy.stress = Math.max(0, academy.stress - 1);
-  academy.actionPoints = academy.stress >= 5 ? 2 : academy.maxActionPoints;
+  academy.actionPoints = academy.maxActionPoints;
   renderAcademy({
     title: `第${academy.day}日｜${academyDayThemes[academy.day]}`,
     text: academy.wrongQuestionIds.length > 0
-      ? `新一日開始。錯題庫有 ${academy.wrongQuestionIds.length} 題，可先重溫再挑戰新題組。`
-      : "新一日開始。今日所有題目仍只取材自《廉頗藺相如列傳》。"
+      ? `晨鐘響起。今日只有一次行動機會；錯題卷中仍有 ${academy.wrongQuestionIds.length} 道疑案，可選擇重查舊卷或推進修習。`
+      : "晨鐘響起。今日只有一次行動機會，你的判斷會影響文心、事件旗標和主線選項。"
   });
 }
 
@@ -2533,6 +2540,9 @@ function loadGame() {
       eventHistory: Array.isArray(parsedData.eventHistory) ? parsedData.eventHistory : [],
       visitedScenes: Array.isArray(parsedData.visitedScenes) ? parsedData.visitedScenes : []
     };
+
+    gameState.academy.maxActionPoints = 1;
+    gameState.academy.actionPoints = Math.min(1, gameState.academy.actionPoints);
 
     switchScreen("game");
 
